@@ -1,130 +1,38 @@
-# AdFixus Identity ROI Calculator
+# AdFixus Identity Durability Simulator
 
-A React-based web application that helps businesses calculate their potential revenue impact from improved identity resolution. Users complete a quiz, input their data, and receive a comprehensive report with PDF export capabilities.
+A public, embeddable **lead magnet** that lets an open-web publisher measure the
+revenue impact of **durable identity** — recovering Safari/ITP addressability,
+lifting CPMs on newly-addressable inventory, and cutting CDP/ID-bloat costs.
 
-## 🚀 Quick Start
+Part of the AdFixus tool family (with `adfixus-capi-calculator` and
+`adfixus-sales`). All three share one design system and one calculation engine —
+see **[docs/ADFIXUS_CORE_SPEC.md](docs/ADFIXUS_CORE_SPEC.md)** and
+**[HANDOVER.md](HANDOVER.md)**.
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+## Run it
 
-2. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your meeting booking URL
-   ```
-
-3. **Start development server:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Build for production:**
-   ```bash
-   npm run build
-   ```
-
-5. **Preview production build:**
-   ```bash
-   npm run preview
-   ```
-
-## 🛠 Tech Stack
-
-- **Frontend Framework**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with custom design tokens
-- **UI Components**: Radix UI primitives (Button, Card, Dialog, Form, etc.)
-- **Forms**: React Hook Form with Zod validation
-- **Charts**: Recharts for data visualization
-- **PDF Generation**: pdfmake for client-side PDF creation
-- **Routing**: React Router DOM
-- **Icons**: Lucide React
-
-## 📋 Environment Variables
-
-| Variable | Description | Default Value |
-|----------|-------------|---------------|
-| `VITE_MEETING_BOOKING_URL` | URL for booking meetings/demos | `https://outlook.office.com/book/SalesTeambooking@adfixus.com` |
-
-## 🔗 Changing the Meeting URL
-
-To update the meeting booking link:
-
-1. **Environment Variable (Recommended):**
-   ```bash
-   # In .env file
-   VITE_MEETING_BOOKING_URL=https://your-booking-system.com/book
-   ```
-
-2. **Code Changes (Alternative):**
-   - Update `src/components/ResultsDashboard.tsx` line 565
-   - Update `src/utils/pdfGenerator.ts` line 323
-
-## 🚀 Deployment
-
-### Static Hosting (Recommended)
-This is a client-side only application suitable for static hosting:
-
-- **Netlify**: Connect your Git repository, build command: `npm run build`, publish directory: `dist`
-- **Vercel**: Import your Git repository, framework preset: Vite, build command: `npm run build`
-- **GitHub Pages**: Use GitHub Actions with build artifact deployment
-- **AWS S3 + CloudFront**: Upload `dist` folder contents to S3 bucket
-
-### Build Process
 ```bash
-npm run build
-# Outputs to ./dist directory
-# Serve ./dist with any static file server
+npm install
+npm run dev      # http://localhost:8080
+npm run build    # → dist/  (static, deploy anywhere)
+npm run preview
 ```
 
-### Environment Variables in Production
-Set `VITE_MEETING_BOOKING_URL` in your hosting platform's environment configuration.
+No environment setup is required to run it. The only optional variable is
+`VITE_MEETING_BOOKING_URL` (the "book a meeting" link). See `.env.example`.
 
-## 📁 Project Structure
+## Key facts
 
-```
-src/
-├── components/           # React components
-│   ├── ui/              # Reusable UI components (Radix UI)
-│   ├── shared/          # Shared business components
-│   ├── calculator/      # Calculator-specific components
-│   ├── Hero.tsx         # Landing page hero
-│   ├── IdentityHealthQuiz.tsx
-│   ├── RevenueCalculator.tsx
-│   ├── ResultsDashboard.tsx
-│   └── ...
-├── hooks/               # Custom React hooks
-├── utils/               # Utility functions
-│   ├── calculationEngine.ts
-│   ├── pdfGenerator.ts
-│   ├── formatting.ts
-│   ├── grading.ts
-│   └── recommendations.ts
-├── constants/           # Application constants
-├── types/              # TypeScript type definitions
-├── pages/              # Page components
-└── assets/             # Static assets (images, etc.)
-```
+- **100% client-side.** No backend, no Supabase, no login, no API keys. PDF is
+  generated in the browser; captured leads are stored in `localStorage`
+  (`adfixus_leads`) via a pluggable adapter you can point at a CRM later.
+- **Embeddable.** Reports its height to the parent page so it iframes cleanly
+  into adfixus.com (`src/core/embed/embed.ts`). Parent snippet is in the spec.
+- **Math lives in `src/core/`** — the shared, verified AdFixus engine. Run
+  `npx esbuild src/core/selfcheck.ts --bundle --platform=node --format=cjs --outfile=/tmp/afx.cjs && node /tmp/afx.cjs`
+  to confirm the golden values.
 
-## 🔧 Development
+## Tech stack
 
-### Available Scripts
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:dev` - Build with development settings
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-### Key Features
-1. **Identity Health Quiz**: Multi-step questionnaire with scoring
-2. **Revenue Calculator**: Interactive calculator with real-time results
-3. **Results Dashboard**: Comprehensive analysis with charts and metrics
-4. **PDF Export**: Client-side PDF generation with custom branding
-5. **Lead Capture**: User information collection (stored in localStorage)
-6. **Responsive Design**: Mobile-first approach with Tailwind CSS
-
-## 📄 License
-
-Private - AdFixus Internal Use
+React 18 · TypeScript · Vite 5 · Tailwind 3 · shadcn/ui (Radix) · Recharts ·
+pdfmake · React Router.
