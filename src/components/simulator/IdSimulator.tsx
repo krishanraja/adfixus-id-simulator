@@ -11,7 +11,24 @@ import { useIdSimulator, DEFAULTS } from '@/hooks/useIdSimulator';
 
 const approxEq = (a: number, b: number) => Math.abs(a - b) < 0.0001;
 
-export const IdSimulator = () => {
+type Simulator = ReturnType<typeof useIdSimulator>;
+
+interface IdSimulatorProps {
+  /**
+   * Share a simulator instance from the guided flow so the audience size chosen
+   * in the flow carries into the full picture (and vice-versa). When omitted,
+   * the component owns its own state — the original standalone behaviour.
+   */
+  simulator?: Simulator;
+  /**
+   * When embedded inside the DepthDrawer the outer page chrome (sticky header,
+   * the opening provocation) is redundant, so it is suppressed.
+   */
+  embedded?: boolean;
+}
+
+export const IdSimulator = ({ simulator, embedded = false }: IdSimulatorProps = {}) => {
+  const owned = useIdSimulator();
   const {
     state,
     results,
@@ -22,7 +39,7 @@ export const IdSimulator = () => {
     updateDomain,
     removeDomain,
     reset,
-  } = useIdSimulator();
+  } = simulator ?? owned;
 
   const configureRef = useRef<HTMLElement>(null);
 
@@ -55,15 +72,16 @@ export const IdSimulator = () => {
   };
 
   return (
-    <div className="min-h-dvh-safe bg-background">
-      <AppHeader />
+    <div className={embedded ? 'bg-background' : 'min-h-dvh-safe bg-background'}>
+      {!embedded && <AppHeader />}
 
       <main className="container mx-auto max-w-5xl px-4 pb-20 pt-4 md:pt-8">
-        {/* 1. Framing — the AI-era provocation, made personal */}
-        <FramingHero visibility={visibility} onExplore={scrollToConfigure} />
+        {/* 1. Framing — the AI-era provocation, made personal. Suppressed when
+            embedded in the drawer (the guided flow has already provoked). */}
+        {!embedded && <FramingHero visibility={visibility} onExplore={scrollToConfigure} />}
 
         {/* 2. See your own situation — the configurable inputs, framed as their business */}
-        <section ref={configureRef} className="mt-20 scroll-mt-20">
+        <section ref={configureRef} className={embedded ? 'scroll-mt-20' : 'mt-20 scroll-mt-20'}>
           <div className="mb-8 max-w-2xl">
             <div className="mb-3 text-xs font-medium uppercase tracking-widest text-primary">
               Step 1 · Describe your business

@@ -1,5 +1,5 @@
-import { IdSimulator } from '@/components/simulator/IdSimulator';
+import { GuidedFlow } from '@/components/flow';
 
-const Index = () => <IdSimulator />;
+const Index = () => <GuidedFlow />;
 
 export default Index;
