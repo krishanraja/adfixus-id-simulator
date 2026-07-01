@@ -1,8 +1,37 @@
 # Changelog
 
-All notable changes to the AdFixus Identity ROI Calculator project are documented in this file.
+All notable changes to **adfixus-id-simulator**, the public AdFixus Identity
+Durability Simulator lead magnet.
 
-## [2.0.0] - 2024-XX-XX - Developer Handover Refactor
+> **Current architecture (authoritative):** a 100% client-side React SPA. The math
+> lives in the shared **`src/core`** engine (`scope: 'id-only'`), driven by
+> `src/hooks/useIdSimulator.ts`; it is fully configurable (basic inputs, an
+> advanced "Configure assumptions" panel, readiness sliders, multi-domain
+> portfolio) and iframe-embeddable into adfixus.com. **No Supabase, no backend, no
+> login, no secrets.** Older entries below predate the current build; where they
+> mention Supabase/edge functions, that architecture is **retired**.
+
+---
+
+## [3.0.0] - ID Durability Simulator on the shared core (current)
+
+### Rebuilt
+- Rebuilt as a fully-configurable ID durability simulator **wired to the shared
+  `src/core` engine** (`UnifiedCalculationEngine.calculate(..., scope: 'id-only')`)
+  — replacing the old in-component math with the verified engine.
+- Adopted the canonical **dark + bright-cyan** design system and the shared
+  **embed module** (`src/core/embed/embed.ts`).
+
+### Docs
+- Rewrote `README.md`, `HANDOVER.md`, `SECURITY.md`; synced
+  `docs/ADFIXUS_CORE_SPEC.md`.
+
+### Removed
+- All Supabase / backend / login remnants — the tool is 100% client-side.
+
+---
+
+## [2.0.0] - 2024-XX-XX - Developer Handover Refactor (historical)
 
 ### 🚀 Major Changes
 - **Removed Supabase Integration**: Eliminated backend dependencies for simpler deployment
