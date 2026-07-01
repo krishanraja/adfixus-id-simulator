@@ -36,9 +36,9 @@ export const AdvancedPanel = ({
               <SlidersHorizontal className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h3 className="text-base font-semibold">Configure assumptions</h3>
+              <h3 className="text-base font-semibold">Refine the assumptions</h3>
               <p className="text-xs text-muted-foreground">
-                Tune every benchmark behind the model
+                Optional — every benchmark is yours to challenge and adjust
               </p>
             </div>
           </div>

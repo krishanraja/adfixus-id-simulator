@@ -21,9 +21,10 @@ export const AddressabilityWaterfall = ({ results }: AddressabilityWaterfallProp
 
   return (
     <Card className="p-6">
-      <div className="mb-1 text-base font-semibold">Addressability recovery</div>
+      <div className="mb-1 text-base font-semibold">Bringing the audience back into view</div>
       <p className="mb-6 text-sm text-muted-foreground">
-        How durable identity lifts the share of inventory you can target.
+        The share of your audience you can recognise, before and after a durable
+        identity re-identifies returning humans.
       </p>
 
       {/* Waterfall bars */}

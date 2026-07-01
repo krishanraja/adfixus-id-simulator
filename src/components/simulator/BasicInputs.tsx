@@ -31,8 +31,10 @@ export const BasicInputs = ({
           <SlidersHorizontal className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h3 className="text-base font-semibold">Monetisation & outlook</h3>
-          <p className="text-xs text-muted-foreground">Your average CPMs and execution scenario</p>
+          <h3 className="text-base font-semibold">How you monetise</h3>
+          <p className="text-xs text-muted-foreground">
+            Your typical CPMs set what each recovered impression is worth
+          </p>
         </div>
       </div>
 
@@ -82,7 +84,10 @@ export const BasicInputs = ({
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium">Execution outlook</Label>
+          <Label className="text-sm font-medium">How cautious should we be?</Label>
+          <p className="text-xs text-muted-foreground">
+            We&rsquo;d rather under-promise. This scales the whole estimate up or down.
+          </p>
           <div className="grid grid-cols-3 gap-2">
             {RISKS.map((r) => {
               const active = r === risk;

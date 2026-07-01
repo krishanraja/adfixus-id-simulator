@@ -18,7 +18,7 @@ export const AppHeader = () => {
 
         <div className="flex items-center gap-3">
           <span className="hidden text-xs font-medium uppercase tracking-widest text-muted-foreground sm:inline">
-            ID Durability Simulator
+            Identity-Durability Audit
           </span>
           <Button asChild size="sm" className="gap-2">
             <a href={MEETING_BOOKING_URL} target="_blank" rel="noreferrer">

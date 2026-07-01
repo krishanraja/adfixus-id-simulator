@@ -55,9 +55,9 @@ export const DisplayVideoBreakdown = ({ results, state }: DisplayVideoBreakdownP
 
   return (
     <Card className="p-6">
-      <div className="mb-1 text-base font-semibold">Display vs video uplift</div>
+      <div className="mb-1 text-base font-semibold">Where the recovery lands</div>
       <p className="mb-4 text-sm text-muted-foreground">
-        Where the recovered addressable revenue comes from.
+        How the recovered revenue splits across your display and video inventory.
       </p>
 
       <div className="flex flex-col items-center gap-6 sm:flex-row">

@@ -37,9 +37,10 @@ export const RampChart = ({ results }: RampChartProps) => {
 
   return (
     <Card className="p-6">
-      <div className="mb-1 text-base font-semibold">12-month ramp</div>
+      <div className="mb-1 text-base font-semibold">The first 12 months</div>
       <p className="mb-4 text-sm text-muted-foreground">
-        Monthly uplift as the durable ID deploys and adoption grows.
+        Recovered revenue builds month over month as more returning humans are
+        re-recognised.
       </p>
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">

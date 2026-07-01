@@ -33,7 +33,7 @@ export const DomainPortfolio = ({ domains, onAdd, onUpdate, onRemove }: DomainPo
           <div>
             <h3 className="text-base font-semibold">Your properties</h3>
             <p className="text-xs text-muted-foreground">
-              Model a single site or a full portfolio
+              Where your audience actually shows up — one site or a whole portfolio
             </p>
           </div>
         </div>
@@ -102,6 +102,10 @@ export const DomainPortfolio = ({ domains, onAdd, onUpdate, onRemove }: DomainPo
                   onValueChange={([v]) => onUpdate(d.id, { safariShare: v / 100 })}
                   className="pt-2"
                 />
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  Safari&rsquo;s ITP wipes cookies within days, so this slice is
+                  the hardest to recognise. Most open-web sites sit at 30&ndash;45%.
+                </p>
               </div>
 
               <div className="space-y-1.5">

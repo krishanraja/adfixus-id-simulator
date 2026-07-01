@@ -14,28 +14,28 @@ export const MetricCards = ({ results }: MetricCardsProps) => {
   const cards = [
     {
       icon: DollarSign,
-      label: 'Annual uplift',
+      label: 'Recovered ad revenue',
       value: formatCurrency(totals.totalAnnualUplift),
       sub: `${formatCurrency(totals.totalMonthlyUplift)}/mo`,
       accent: true,
     },
     {
       icon: Radar,
-      label: 'Safari addressability recovered',
+      label: 'Safari audience recognised again',
       value: formatPercentage(id.details.targetSafariAddressability, 0),
-      sub: `of ${formatPercentage(id.details.safariShare, 0)} Safari traffic`,
+      sub: `of the ${formatPercentage(id.details.safariShare, 0)} on Safari going dark`,
     },
     {
       icon: Layers,
-      label: 'Newly addressable impressions',
+      label: 'Impressions brought back into view',
       value: `${formatNumber(id.details.newlyAddressableImpressions)}/mo`,
-      sub: 'unlocked for premium sale',
+      sub: 'now sellable at their true value',
     },
     {
       icon: Database,
-      label: 'CDP savings',
+      label: 'One identity, not many',
       value: `${formatCurrency(id.details.monthlyCdpSavings)}/mo`,
-      sub: `${formatPercentage(id.details.idReductionPercentage, 0)} less ID bloat`,
+      sub: `${formatPercentage(id.details.idReductionPercentage, 0)} fewer duplicate profiles`,
     },
   ];
 

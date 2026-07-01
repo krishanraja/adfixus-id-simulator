@@ -113,6 +113,54 @@ function deploymentFor(count: number): ScenarioState['deployment'] {
   return 'full';
 }
 
+/**
+ * Narrative framing metrics derived from the same state + engine results.
+ *
+ * These do NOT touch the engine — they translate the model's addressability
+ * figures into the "how much of your audience is invisible today, and what a
+ * durable owned identity recovers" story that leads the experience. Numbers are
+ * evidence for the idea, not new inputs.
+ */
+export interface AudienceVisibility {
+  monthlyPageviews: number;
+  safariShare: number; // pageview-weighted, 0-1
+  /** Share of the audience unaddressable today (going dark). */
+  invisibleShare: number; // 0-1
+  /** Share addressable today. */
+  visibleShare: number; // 0-1
+  /** Share a durable, owned ID recovers back into view. */
+  recoveredShare: number; // 0-1 (of total audience)
+  /** Share still invisible even after recovery. */
+  stillInvisibleShare: number; // 0-1
+}
+
+export function deriveAudienceVisibility(
+  state: IdSimulatorState,
+  results: UnifiedResults,
+): AudienceVisibility {
+  const d = results.idInfrastructure.details;
+  const monthlyPageviews = state.domains.reduce((s, dm) => s + dm.monthlyPageviews, 0);
+  const totalPv = monthlyPageviews || 1;
+  const safariShare =
+    state.domains.reduce((s, dm) => s + dm.safariShare * dm.monthlyPageviews, 0) / totalPv;
+
+  // Engine reports addressability as percentages (0-100).
+  const visibleShare = Math.min(1, Math.max(0, d.currentAddressability / 100));
+  const improvedShare = Math.min(1, Math.max(0, d.improvedAddressability / 100));
+  const recoveredShare = Math.max(0, improvedShare - visibleShare);
+  const invisibleShare = Math.max(0, 1 - visibleShare);
+  const stillInvisibleShare = Math.max(0, 1 - improvedShare);
+
+  return {
+    monthlyPageviews,
+    safariShare,
+    invisibleShare,
+    visibleShare,
+    recoveredShare,
+    stillInvisibleShare,
+  };
+}
+
 /** Runs the core engine for the given state, applying constant overrides. */
 export function computeResults(state: IdSimulatorState): UnifiedResults {
   // Apply live constant overrides around the calculation.
@@ -170,6 +218,7 @@ export function useIdSimulator() {
   const [state, setState] = useState<IdSimulatorState>(initialState);
 
   const results = useMemo(() => computeResults(state), [state]);
+  const visibility = useMemo(() => deriveAudienceVisibility(state, results), [state, results]);
 
   const patch = useCallback((partial: Partial<IdSimulatorState>) => {
     setState((s) => ({ ...s, ...partial }));
@@ -207,6 +256,7 @@ export function useIdSimulator() {
   return {
     state,
     results,
+    visibility,
     patch,
     patchReadiness,
     addDomain,
