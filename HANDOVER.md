@@ -13,7 +13,7 @@ click away for anyone who wants to see the working.
 
 The framing is deliberately **AI-era and consultative**: the anonymous majority
 has gone dark (cookie decay, Safari/ITP, AI crawlers), and the tool quantifies the
-audience - and the revenue - a durable owned identity brings back into view. It is
+audience, and the revenue, a durable owned identity brings back into view. It is
 a conversation starter, not a commercial offer.
 
 ## The 5-minute mental model
