@@ -13,11 +13,12 @@ no database, and no API keys / secrets** of any kind.
 - **No secrets:** the app requires none. The only environment variable is
   `VITE_MEETING_BOOKING_URL` (a public link), which is safe to expose. `VITE_*`
   values are baked into the client and must only ever hold public information.
-- **Lead data:** captured leads are stored in the browser's `localStorage`
-  (`adfixus_leads`) via the pluggable `leadAdapter`; nothing is transmitted. If you
-  later route leads to a CRM/ESP, implement `LeadAdapter` and keep any credentials
-  **server-side** (never in a `VITE_` var).
-- **XSS:** React's default escaping; form inputs validated with Zod.
+- **No lead capture / storage:** the tool captures nothing. The only user action
+  that leaves the browser is following the public booking link
+  (`VITE_MEETING_BOOKING_URL`). If you later add lead capture, keep any credentials
+  **server-side** (never in a `VITE_` var, which is baked into the client bundle).
+- **XSS:** React's default escaping; all inputs are numeric sliders/fields, not
+  free-form HTML.
 
 ## Deployment
 

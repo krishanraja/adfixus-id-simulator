@@ -3,13 +3,37 @@
 All notable changes to **adfixus-id-simulator**, the public AdFixus Identity
 Durability Simulator lead magnet.
 
-> **Current architecture (authoritative):** a 100% client-side React SPA. The math
-> lives in the shared **`src/core`** engine (`scope: 'id-only'`), driven by
-> `src/hooks/useIdSimulator.ts`; it is fully configurable (basic inputs, an
-> advanced "Configure assumptions" panel, readiness sliders, multi-domain
-> portfolio) and iframe-embeddable into adfixus.com. **No Supabase, no backend, no
-> login, no secrets.** Older entries below predate the current build; where they
-> mention Supabase/edge functions, that architecture is **retired**.
+> **Current architecture (authoritative):** a 100% client-side React SPA. The
+> default surface is an Apple-grade **guided flow** (`src/components/flow/*`:
+> provocation → one audience-size control → animated reveal → a depth drawer
+> holding the full configurable simulator, `src/components/simulator/*`). The math
+> lives in the verified **`src/core`** engine (`scope: 'id-only'`), driven by a
+> single `src/hooks/useIdSimulator.ts` instance shared by the flow and the drawer.
+> Iframe-embeddable into adfixus.com. **No backend, no login, no lead capture, no
+> secrets.** Older entries below predate the current build; where they mention
+> Supabase/edge functions or lead capture, that architecture is **retired**.
+
+---
+
+## [3.1.0] - Production cleanup (current)
+
+### Changed
+- Docs rewritten to match the guided-flow + AI-era-consultative reality:
+  `README.md`, `HANDOVER.md`, `docs/ADFIXUS_CORE_SPEC.md`, plus `SECURITY.md`.
+
+### Removed
+- Dead code left after the guided-flow rebuild: 14 unused shadcn/ui components, the
+  unused toast subsystem (`use-toast`, `toast`, `toaster`), `use-mobile`, `App.css`,
+  the unused lead-capture adapter (`core/adapters/leadAdapter.ts`), the golden-values
+  `core/selfcheck.ts` and its convenience wrappers, and the stale `bun.lockb`.
+- Unused dependencies: `@hookform/resolvers`, `react-hook-form`, `zod`,
+  `next-themes`, `@tailwindcss/typography`, and the Radix packages behind the
+  removed components (`react-dialog`, `react-progress`, `react-radio-group`,
+  `react-select`, `react-tabs`, `react-toast`).
+
+### Hygiene
+- Untracked `.env`; `.gitignore` now covers `.env*` (keeping `.env.example`) and
+  `.vercel`.
 
 ---
 

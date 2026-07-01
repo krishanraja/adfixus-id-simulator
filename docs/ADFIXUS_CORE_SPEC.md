@@ -1,133 +1,100 @@
-# AdFixus Core — Canonical Specification
+# AdFixus Core — Engine, Design System & Embed Spec
 
-**This file is the single source of truth for the shared design system, the
-calculation engine (math + assumptions), the `AssumptionOverrides` surface, and
-the iframe-embedding protocol used across all three AdFixus tools.** It is
-vendored, byte-identical, into each repo at `docs/ADFIXUS_CORE_SPEC.md`. If you
-change the core, change it here and re-sync `src/core/` into every repo (see
-§7 Keeping repos in sync).
+**Single source of truth for the calculation engine (math + assumptions), the
+`AssumptionOverrides` surface, the design system, and the iframe-embedding
+protocol used by the ID Durability Simulator.** Read this after
+[README.md](../README.md) when you need the internals.
 
----
-
-## 1. The three tools (which one draws which slice)
-
-| Repo | Audience | Purpose | Engine scope | Draws |
-|------|----------|---------|--------------|-------|
-| **adfixus-id-simulator** | Public lead magnet | Measure **ID durability** for an open-web publisher | `id-only` | `results.idInfrastructure` (Safari addressability recovery + CPM delta + CDP savings) |
-| **adfixus-capi-calculator** | Public lead magnet | Measure the **CAPI Sales-Plan** — campaign ramp + $30K-cap economics + deal models | `id-capi` | `results.capiCapabilities` + the commercial deal models (revenue-share / annual-cap / flat-fee) |
-| **adfixus-sales** | Internal (team-only) | **Target Business Report Card** — live enrichment + v6 rubric + full ROI/commercial | `id-capi-performance` | the full stack + `pricingConfig` + commercial modelling |
-
-All three are React 18 + Vite + TypeScript + Tailwind + shadcn/ui and all three
-are **iframe-embeddable into adfixus.com**.
-
-- The **two lead magnets are 100% client-side** — no backend, no login, no
-  secrets. They import `src/core` and render benefit slices only; they never
-  import `pricingConfig`.
-- **adfixus-sales has a serverless backend** (Vercel `api/*`) that holds all the
-  third-party enrichment keys server-side and is reached through
-  `src/lib/proxyClient.ts`. It is **team-only**, served behind Vercel
-  authentication on `adfixus-sales.vercel.app`; confidential data lives only
-  behind the proxy, never in the client bundle or the repo. See **docs/PROXY.md**
-  (adfixus-sales only) for the endpoint + env-var runbook.
+The engine (`src/core/`) is a self-contained, verified calculation core. This tool
+drives it with **`scope: 'id-only'`** and renders the **ID Infrastructure** benefit
+slice (Safari addressability recovery + CPM delta + CDP savings). The engine also
+models CAPI and Media Performance benefit stacks and a pricing rate card; those
+code paths exist inside the core but are **not surfaced by this tool** — treat them
+as engine internals you can ignore unless you extend the product.
 
 ---
 
-## 2. The AdFixus core (`src/core/`)
+## 1. The core (`src/core/`)
 
-Vendored identically into each repo. Import via the `@/core` alias.
+Import everything via the `@/core` alias.
 
 ```
 src/core/
   engine/
     unifiedCalculationEngine.ts   # the ROI engine
     domainAggregation.ts          # aggregate 1..N domains, weighted by pageviews
-    index.ts                      # public API + convenience wrappers
+    index.ts                      # public API (engine + constants + types)
   constants/
     benchmarks.ts                 # industry benchmarks (addressability, CAPI, media, operational)
     riskScenarios.ts              # conservative / moderate / optimistic multipliers
     readinessFactors.ts           # 8 business-readiness factors + presets
-    pricingConfig.ts              # editable AdFixus rate card (SALES ONLY — never in a lead magnet)
+    pricingConfig.ts              # AdFixus rate card (engine-internal; unused by this tool's id-only scope)
   types/
     domain.ts                     # CoreDomain + singleDomain() helper
     scenarios.ts                  # inputs / results / scenario / AssumptionOverrides types
   embed/embed.ts                  # iframe height-reporting module
-  adapters/leadAdapter.ts         # pluggable lead capture (localStorage default)
-  selfcheck.ts                    # dependency-free golden-values test
-  index.ts                        # re-exports everything above
+  index.ts                        # @/core public barrel (re-exports the engine)
 ```
 
-### 2.1 Engine API
+### 1.1 How this tool calls the engine
 
-**Convenience wrappers (lead magnets)** — benefits only, no pricing, from a
-handful of simple inputs (`SimpleSiteInputs`):
-
-```ts
-import { calculateIdDurability, calculateCapiBenefits } from '@/core';
-
-// id-simulator (scope 'id-only'): read result.idInfrastructure
-const id = calculateIdDurability({
-  monthlyPageviews: 5_000_000,
-  displayCPM: 4.5, videoCPM: 12,
-  adsPerPage: 3.2, displayVideoSplit: 80, safariShare: 0.35,
-});
-id.idInfrastructure.monthlyUplift; // headline ID-durability number
-
-// capi-calculator (scope 'id-capi'): read result.capiCapabilities
-const capi = calculateCapiBenefits({ monthlyPageviews: 5_000_000, capiLineItemShare: 0.6 });
-capi.capiCapabilities.conversionTrackingRevenue; // CAPI incremental revenue
-```
-
-Both wrappers accept an optional second arg `{ deployment?, risk?, overrides? }`.
-
-**Full engine (sales)** — the one call everything else is built on:
+The UI never does math. `src/hooks/useIdSimulator.ts` builds the inputs from state
+and calls the engine directly:
 
 ```ts
-import { UnifiedCalculationEngine, singleDomain, DEFAULT_PRICING } from '@/core';
+import { UnifiedCalculationEngine, singleDomain } from '@/core';
 
 const results = UnifiedCalculationEngine.calculate(
-  inputs,      // { domains: CoreDomain[], displayCPM, videoCPM, capiLineItemShare, ... }
-  scenario,    // { deployment: 'single' | 'portfolio', scope: 'id-only' | 'id-capi' | 'id-capi-performance' }
-  risk,        // 'conservative' | 'moderate' | 'optimistic'
-  overrides,   // AssumptionOverrides | undefined  (readiness sliders + benchmark/pricing overrides)
-  pricing,     // PricingConfig | undefined  (sales only; every field is a UI slider)
+  { domains, displayCPM, videoCPM, capiLineItemShare: 0.6 },
+  { deployment: 'single', scope: 'id-only' },   // this tool is always id-only
+  risk,                                          // 'conservative' | 'moderate' | 'optimistic'
+  overrides,                                     // AssumptionOverrides (readiness + benchmark overrides)
 );
+
+results.idInfrastructure;      // the ID-durability slice this tool renders
 ```
 
 Signature:
 `UnifiedCalculationEngine.calculate(inputs, scenario, risk, overrides?, pricing?) → UnifiedResults`
 
 `scope` selects the benefit stack:
-- `id-only` → **ID Infrastructure** only.
+- `id-only` → **ID Infrastructure** only. ← this tool
 - `id-capi` → + **CAPI Capabilities**.
 - `id-capi-performance` → + **Media Performance**.
 
 `UnifiedCalculationEngine.generateMonthlyProjection(results)` returns the
 month-by-month ramp used by the charts.
 
-### 2.2 The `AssumptionOverrides` surface
+**Live benchmark overrides.** A few benchmarks (Safari share, baseline
+addressability, contextual-CPM ratio, CDP savings) are exported as mutable
+constant objects. So the advanced sliders stay truthful, `useIdSimulator` snapshots
+the pristine defaults, applies the user's values around each `calculate()` call,
+and restores them in a `finally` — see the comments in that file.
 
-The 4th argument lets any tool override defaults without editing the core. It is
-a partial, deep-mergeable object (see `types/scenarios.ts`) covering:
+### 1.2 The `AssumptionOverrides` surface
+
+The 4th argument lets the UI override defaults without editing the core. It is a
+partial, deep-mergeable object (see `types/scenarios.ts`) covering:
 
 - **`readinessFactors`** — the 8 business-readiness sliders (0–1 each). These
-  modulate risk-scenario efficiency and, for CAPI, drive campaign volume/spend
-  multipliers. Presets live in `constants/readinessFactors.ts`.
-- **`benchmarks`** — override any industry-benchmark constant (addressability,
-  CAPI, media, operational) from `constants/benchmarks.ts`.
+  modulate risk-scenario efficiency. Presets live in `constants/readinessFactors.ts`.
+- **`targetSafariAddressability` / `cpmUpliftFactor`** — the two first-class
+  ID-infrastructure levers the advanced panel exposes.
+- **`benchmarks`** — override any industry-benchmark constant from
+  `constants/benchmarks.ts`.
 - **`adoptionRate` / `rampMonths`** — override the risk-scenario adoption curve.
-
-Pricing is **not** part of `AssumptionOverrides`; it is the separate 5th argument
-`PricingConfig` and is used only by the sales tool.
 
 ---
 
-## 3. Formulas & assumptions
+## 2. Formulas & assumptions
 
-The engine models three stacked benefit categories. Each is computed at "base",
-then multiplied by (a) risk-scenario efficiency factors, then (b) the adoption
-rate, then (c) a deployment multiplier. Totals are the sum of adopted components.
+The engine models stacked benefit categories. Each is computed at "base", then
+multiplied by (a) risk-scenario efficiency factors, then (b) the adoption rate,
+then (c) a deployment multiplier. Totals are the sum of adopted components. **This
+tool renders only §2.1 (ID Infrastructure);** §2.2–§2.3 are documented for
+completeness.
 
-### 3.1 ID Infrastructure (always included)
+### 2.1 ID Infrastructure (this tool)
 - Impressions = `pageviews × adsPerPage`; split display/video by `displayVideoSplit`.
 - Current revenue = `(displayImpr/1000)×displayCPM + (videoImpr/1000)×videoCPM`.
 - **Safari addressability recovery:** newly-addressable Safari impressions =
@@ -135,39 +102,39 @@ rate, then (c) a deployment multiplier. Totals are the sum of adopted components
   where improvement = `targetSafariAddressability(default 0.35) − 0`.
 - **CPM uplift is a delta, not the full CPM.** Newly-addressable Safari inventory
   today earns *contextual* CPM (`CONTEXTUAL_CPM_RATIO = 0.72` of addressable). The
-  uplift is `addressableCPM − contextualCPM` where `addressableCPM = CPM × (1 + CPM_IMPROVEMENT_FACTOR 0.25)`.
+  uplift is `addressableCPM − contextualCPM` where
+  `addressableCPM = CPM × (1 + CPM_IMPROVEMENT_FACTOR 0.25)`.
 - **CDP savings:** fixed `CDP_MONTHLY_SAVINGS = $3,500/mo` (configurable).
-- Total addressability moves from `BASELINE_TOTAL_ADDRESSABILITY = 65%` to `65% + SAFARI_SHARE×improvement` (≈72–77%).
+- Total addressability moves from `BASELINE_TOTAL_ADDRESSABILITY = 65%` to
+  `65% + SAFARI_SHARE×improvement` (≈72–77%).
 
-### 3.2 CAPI Capabilities (`id-capi`, `id-capi-performance`)
+The guided flow narrates this as an **audience-visibility story** (how much of the
+audience is invisible today, how much a durable ID recovers). Those figures are
+derived from the same engine result in `deriveAudienceVisibility()` — they are a
+retelling of the model's addressability numbers, not new inputs.
+
+### 2.2 CAPI Capabilities (`id-capi`+, engine-internal)
 - Match rate improves `BASELINE_MATCH_RATE 30% → IMPROVED_MATCH_RATE 75%`.
-- Campaign volume is an **output** of Business Readiness, not a manual input:
-  `BASE_YEARLY_CAMPAIGNS 12 × volumeMultiplier` (bounded 0.7–1.4×), `BASE_AVG_CAMPAIGN_SPEND $75K × spendMultiplier` (≤1.15×), distributed across 12 months (POC-then-scale campaign ramp).
+- Campaign volume is an **output** of Business Readiness:
+  `BASE_YEARLY_CAMPAIGNS 12 × volumeMultiplier` (bounded 0.7–1.4×),
+  `BASE_AVG_CAMPAIGN_SPEND $75K × spendMultiplier` (≤1.15×), across 12 months.
 - CAPI-eligible spend = `monthlyCampaignSpend × capiLineItemShare`.
-- Conversion uplift = `CONVERSION_RATE_MULTIPLIER 1.40 − 1` (i.e. +40%).
-- Net publisher benefit = `conversionTrackingRevenue + labourSavings − serviceFees`,
-  where labour savings = `40 hrs × $75`, service fee = `improvedEligibleSpend × capiServiceFeeRate (0.125)`.
-- **Deal-model economics (capi-calculator + sales):** the 12.5% share applies to
-  **CAPI incremental revenue only**, with a **$30K/campaign monthly cap**
-  (`capiCampaignCapMonthly`). Three publisher deal models are compared —
-  **revenue-share** (12.5% uncapped, recommended, fully aligned), **annual-cap**
-  (12.5% with a Year-1 cap, then unlimited publisher upside), and **flat-fee**
-  (fixed annual fee, no growth alignment).
+- Conversion uplift = `CONVERSION_RATE_MULTIPLIER 1.40 − 1` (+40%).
+- Net publisher benefit = `conversionTrackingRevenue + labourSavings − serviceFees`.
 
-### 3.3 Media Performance (`id-capi-performance` only)
-- Premium yield = `premiumImpressions(PREMIUM_INVENTORY_SHARE 0.20) × CPM × YIELD_UPLIFT 0.15`.
-- Make-good savings = `directSold(0.40 of revenue) × (BASELINE_MAKEGOOD 0.05 − IMPROVED_MAKEGOOD 0.02)`.
-- ROAS improves `2.5 → 3.5` (reporting only).
+### 2.3 Media Performance (`id-capi-performance`, engine-internal)
+- Premium yield = `premiumImpressions(0.20) × CPM × YIELD_UPLIFT 0.15`.
+- Make-good savings = `directSold(0.40) × (BASELINE 0.05 − IMPROVED 0.02)`.
 
-### 3.4 Risk scenarios (efficiency + adoption)
+### 2.4 Risk scenarios (efficiency + adoption)
 `conservative / moderate / optimistic` scale ramp-up months, adoption rate,
-addressability efficiency, CAPI deployment rate, CPM-uplift realization, sales
-effectiveness, and CDP-savings realization. See `constants/riskScenarios.ts` for
-exact values. Readiness factors (`constants/readinessFactors.ts`, 8 sliders) further
-modulate these and drive CAPI campaign volume.
+addressability efficiency, CPM-uplift realization, and CDP-savings realization.
+Exact values in `constants/riskScenarios.ts`. The 8 readiness factors
+(`constants/readinessFactors.ts`) further modulate these.
 
-### 3.5 Golden values (regression guard)
-For inputs `{5,000,000 pageviews, $4.50 display / $12 video CPM, 3.2 ads/page, 80% display, 35% Safari}`, moderate risk:
+### 2.5 Golden values (regression guard)
+For inputs `{5,000,000 pageviews, $4.50 display / $12 video CPM, 3.2 ads/page,
+80% display, 35% Safari}`, moderate risk, `scope: 'id-only'`:
 
 | Metric | Value |
 |--------|-------|
@@ -175,41 +142,34 @@ For inputs `{5,000,000 pageviews, $4.50 display / $12 video CPM, 3.2 ads/page, 8
 | ID-only monthly uplift | **$5,298** |
 | Improved addressability | **77.3%** |
 | CDP monthly savings | **$3,500** |
-| CAPI monthly uplift (id-capi) | **$6,488** |
 
-Run the check in any repo:
-```bash
-npx esbuild src/core/selfcheck.ts --bundle --platform=node --format=cjs \
-  --outfile=/tmp/afx.cjs && node /tmp/afx.cjs
-```
-It exits non-zero if any value drifts. Because `src/core/` is byte-identical in
-every repo, all three produce identical numbers by construction.
+If you touch `benchmarks.ts` or `riskScenarios.ts`, re-check these numbers against
+a run of the app before shipping.
 
 ---
 
-## 4. Design system (canonical)
+## 3. Design system
 
-Dark theme, AdFixus bright-cyan accent. Defined as HSL tokens in each repo's
-`src/index.css` (`:root`) with a matching `tailwind.config.ts`. Both files are
-**identical across the three repos** — copy, don't diverge.
+Dark theme, AdFixus bright-cyan accent. Defined as HSL tokens in `src/index.css`
+(`:root`) with a matching `tailwind.config.ts`.
 
 Key tokens: `--background: 0 0% 0%` (black), `--foreground: 0 0% 100%`,
 `--primary: 195 95% 50%` (cyan), `--primary-glow: 195 95% 60%`, `--radius: 1rem`,
 `--card: 0 0% 6%`, semantic `--success / --warning / --error`, status
-`--revenue-gain / --revenue-loss`. Body font: **Montserrat** (loaded via Google
+`--revenue-gain / --revenue-loss`. Body font: **Montserrat** (loaded via a Google
 Fonts `<link>` in `index.html`). Utility classes: `.glass-card`, `.gradient-text`,
 `.btn-gradient`, `.hero-gradient`, `.shimmer`, `.animate-fade-in`.
 
-> Note: adfixus.com is currently a *light* site. The dark-cyan look is canonical.
-> If seamless blending into the live site becomes the priority, flip the token
-> values in `src/index.css` (one file) to a light variant — nothing else needs to
-> change.
+> Note: adfixus.com is currently a *light* site. The dark-cyan look is canonical
+> for this tool. If seamless blending into the live site becomes the priority, flip
+> the token values in `src/index.css` (one file) to a light variant — nothing else
+> needs to change.
 
 ---
 
-## 5. Iframe embedding protocol
+## 4. Iframe embedding protocol
 
-Every tool calls `initAdfixusEmbed({ appName })` in `src/main.tsx`. The module
+The app calls `initAdfixusEmbed({ appName })` in `src/main.tsx`. The module
 (`src/core/embed/embed.ts`) reports content height to the parent via `postMessage`
 so the parent iframe resizes to fit (no inner scrollbar). It validates the parent
 origin (default `https://www.adfixus.com`), throttles with a `ResizeObserver`,
@@ -235,24 +195,19 @@ guards against feedback loops (only sends when height changes >10px, capped at
 `initAdfixusEmbed` defaults `parentOrigin` to `https://www.adfixus.com`. To embed
 on another origin, pass `initAdfixusEmbed({ appName, parentOrigin })`.
 
----
-
-## 6. Adapters (pluggable)
-
-- **Lead capture** (`src/core/adapters/leadAdapter.ts`): default appends the lead
-  to `localStorage["adfixus_leads"]`. To send leads to a CRM/ESP later, implement
-  the `LeadAdapter` interface and call `setLeadAdapter(yours)` once at startup —
-  nothing else changes. In **adfixus-sales** the lead can also be POSTed to the
-  proxy `POST /api/lead` (Resend), server-side.
-- **PDF**: generated fully client-side with pdfmake and downloaded. No email in
-  the lead magnets.
+Because the guided flow hides (rather than unmounts) while the depth drawer is
+open, and the drawer renders in normal document flow, `#root` scrollHeight always
+reflects what the visitor sees — so the reported height stays correct as the
+visitor moves between the flow and the full picture.
 
 ---
 
-## 7. Keeping repos in sync
+## 5. Client-side outputs
 
-`src/core/`, `src/index.css`, `tailwind.config.ts`, and this
-`docs/ADFIXUS_CORE_SPEC.md` must stay **identical** across the three repos. When
-you change one, copy it to the others and run the self-check in each. There is
-deliberately no shared npm package (kept simple for handover); promoting the core
-to a private package is a good future step.
+- **PDF**: `src/utils/idPdf.ts` generates a proposal PDF fully client-side with
+  pdfmake (lazy-loaded so it doesn't weigh down first paint). Nothing is emailed or
+  sent anywhere.
+- **Booking CTA**: links out to `VITE_MEETING_BOOKING_URL`.
+
+There is no lead capture, database, or backend in this tool. The only network
+egress is the visitor following the booking link.
