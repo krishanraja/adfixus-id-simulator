@@ -1,7 +1,6 @@
 import { formatCurrency, formatNumber, formatPercentage } from './formatting';
 import { generateKeyRecommendations } from './recommendations';
 import { getGrade } from './grading';
-import { supabase } from '@/integrations/supabase/client';
 
 // Dynamic import for pdfMake to reduce initial bundle size
 let pdfMakeInstance: any = null;
@@ -265,88 +264,36 @@ export const generatePDF = async (quizResults: any, calculatorResults: any, lead
   });
 };
 
-// Generate PDF and send via email (called on form submit)
-export const generateAndSendPDFEmail = async (quizResults: any, calculatorResults: any, leadData: any) => {
-  console.log('[PDF Email] Starting PDF generation for email...');
-  const logoDataUrl = await convertImageToBase64('/lovable-uploads/e51c9dd5-2c62-4f48-83ea-2b4cb61eed6c.png');
-  const docDefinition = buildDocDefinition(quizResults, calculatorResults, leadData, logoDataUrl);
-  const pdfMake = await initPdfMake();
-  
-  return new Promise((resolve, reject) => {
-    pdfMake.createPdf(docDefinition).getBase64(async (base64Data: string) => {
-      try {
-        console.log('[PDF Email] PDF base64 generated, length:', base64Data.length);
-        await sendPDFByEmail(base64Data, quizResults, calculatorResults, leadData);
-        console.log('[PDF Email] Email sent successfully');
-        resolve({ success: true, emailSent: true });
-      } catch (error) {
-        console.error('[PDF Email] Error sending email:', error);
-        reject(error);
-      }
-    });
-  });
+// Persist captured lead fields client-side. Stores an append-only list under
+// the "adfixus_leads" localStorage key.
+const persistLeadLocally = (leadData?: any) => {
+  if (!leadData) return;
+  try {
+    const raw = localStorage.getItem('adfixus_leads');
+    const leads = raw ? JSON.parse(raw) : [];
+    const list = Array.isArray(leads) ? leads : [];
+    list.push({ ...leadData, capturedAt: new Date().toISOString() });
+    localStorage.setItem('adfixus_leads', JSON.stringify(list));
+  } catch (error) {
+    console.warn('[PDF] Failed to persist lead to localStorage:', error);
+  }
 };
 
-// Email sending functionality
-export const sendPDFByEmail = async (pdfBase64: string, quizResults: any, calculatorResults: any, leadData?: any) => {
-  try {
-    console.log('Attempting to send PDF via email...', {
-      pdfLength: pdfBase64.length,
-      hasQuizResults: !!quizResults,
-      hasCalculatorResults: !!calculatorResults,
-      hasLeadData: !!leadData,
-      leadDataContent: leadData
-    });
-    
-    // Validate lead data structure
-    if (!leadData || !leadData.email) {
-      console.warn('No lead data or email found, using default values');
-    }
-    
-    const { data, error } = await supabase.functions.invoke('send-pdf-email', {
-      body: {
-        pdfBase64,
-        // Send both formats for backward compatibility
-        contactForm: leadData || {
-          firstName: 'Unknown',
-          lastName: 'User',
-          email: 'unknown@example.com',
-          company: 'Unknown Company'
-        },
-        userContactDetails: leadData || {
-          firstName: 'Unknown',
-          lastName: 'User',
-          email: 'unknown@example.com',
-          company: 'Unknown Company'
-        },
-        quizResults,
-        calculatorResults
-      }
-    });
+// Generate the proposal PDF client-side and deliver it to the user's browser.
+// The PDF is generated with pdfmake and downloaded locally, and the captured
+// lead fields are persisted to localStorage. (The former server email path has
+// been removed; this is fully client-side.)
+export const generateAndSendPDFEmail = async (quizResults: any, calculatorResults: any, leadData: any) => {
+  console.log('[PDF] Starting client-side PDF generation...');
+  persistLeadLocally(leadData);
+  const result = await generatePDF(quizResults, calculatorResults, leadData);
+  console.log('[PDF] PDF delivered to browser');
+  return { ...(result as object), emailSent: false };
+};
 
-    if (error) {
-      console.error('Supabase function error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        context: error.context,
-        hint: error.hint,
-        details: error.details
-      });
-      throw new Error(`Email service error: ${error.message || 'Unknown error'}`);
-    }
-
-    console.log('Email sent successfully:', data);
-    return data;
-  } catch (error: any) {
-    console.error('Error sending PDF email:', error);
-    console.error('Full error object:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    });
-    
-    // Provide more specific error information
-    const errorMessage = error.message || 'Failed to send email';
-    throw new Error(`Email delivery failed: ${errorMessage}`);
-  }
+// Backward-compatible export: no longer emails, just persists the lead and
+// downloads the PDF client-side.
+export const sendPDFByEmail = async (_pdfBase64: string, quizResults: any, calculatorResults: any, leadData?: any) => {
+  persistLeadLocally(leadData);
+  return generatePDF(quizResults, calculatorResults, leadData);
 };
