@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
-// AdFixus canonical Tailwind config — keep identical across all AdFixus tools.
+// AdFixus canonical Tailwind config - keep identical across all AdFixus tools.
 // See docs/ADFIXUS_CORE_SPEC.md for the canonical design reference.
 export default {
 	darkMode: ["class"],

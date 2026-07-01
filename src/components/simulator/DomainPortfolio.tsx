@@ -33,7 +33,7 @@ export const DomainPortfolio = ({ domains, onAdd, onUpdate, onRemove }: DomainPo
           <div>
             <h3 className="text-base font-semibold">Your properties</h3>
             <p className="text-xs text-muted-foreground">
-              Where your audience actually shows up — one site or a whole portfolio
+              Where your audience actually shows up - one site or a whole portfolio
             </p>
           </div>
         </div>

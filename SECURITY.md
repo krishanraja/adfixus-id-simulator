@@ -1,4 +1,4 @@
-# Security — adfixus-id-simulator (ID Durability Simulator)
+# Security - adfixus-id-simulator (ID Durability Simulator)
 
 ## Overview
 
@@ -8,7 +8,7 @@ no database, and no API keys / secrets** of any kind.
 
 ## Security model
 
-- **No backend:** all math and PDF generation happen client-side — no server-side
+- **No backend:** all math and PDF generation happen client-side - no server-side
   attack surface, no secrets to leak.
 - **No secrets:** the app requires none. The only environment variable is
   `VITE_MEETING_BOOKING_URL` (a public link), which is safe to expose. `VITE_*`

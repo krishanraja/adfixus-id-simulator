@@ -38,7 +38,7 @@ export const AdvancedPanel = ({
             <div>
               <h3 className="text-base font-semibold">Refine the assumptions</h3>
               <p className="text-xs text-muted-foreground">
-                Optional — every benchmark is yours to challenge and adjust
+                Optional - every benchmark is yours to challenge and adjust
               </p>
             </div>
           </div>

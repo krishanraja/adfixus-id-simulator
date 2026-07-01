@@ -1,4 +1,4 @@
-# AdFixus Core — Engine, Design System & Embed Spec
+# AdFixus Core - Engine, Design System & Embed Spec
 
 **Single source of truth for the calculation engine (math + assumptions), the
 `AssumptionOverrides` surface, the design system, and the iframe-embedding
@@ -9,7 +9,7 @@ The engine (`src/core/`) is a self-contained, verified calculation core. This to
 drives it with **`scope: 'id-only'`** and renders the **ID Infrastructure** benefit
 slice (Safari addressability recovery + CPM delta + CDP savings). The engine also
 models CAPI and Media Performance benefit stacks and a pricing rate card; those
-code paths exist inside the core but are **not surfaced by this tool** — treat them
+code paths exist inside the core but are **not surfaced by this tool**, treat them
 as engine internals you can ignore unless you extend the product.
 
 ---
@@ -69,20 +69,20 @@ month-by-month ramp used by the charts.
 addressability, contextual-CPM ratio, CDP savings) are exported as mutable
 constant objects. So the advanced sliders stay truthful, `useIdSimulator` snapshots
 the pristine defaults, applies the user's values around each `calculate()` call,
-and restores them in a `finally` — see the comments in that file.
+and restores them in a `finally`, see the comments in that file.
 
 ### 1.2 The `AssumptionOverrides` surface
 
 The 4th argument lets the UI override defaults without editing the core. It is a
 partial, deep-mergeable object (see `types/scenarios.ts`) covering:
 
-- **`readinessFactors`** — the 8 business-readiness sliders (0–1 each). These
+- **`readinessFactors`**: the 8 business-readiness sliders (0-1 each). These
   modulate risk-scenario efficiency. Presets live in `constants/readinessFactors.ts`.
-- **`targetSafariAddressability` / `cpmUpliftFactor`** — the two first-class
+- **`targetSafariAddressability` / `cpmUpliftFactor`**: the two first-class
   ID-infrastructure levers the advanced panel exposes.
-- **`benchmarks`** — override any industry-benchmark constant from
+- **`benchmarks`**: override any industry-benchmark constant from
   `constants/benchmarks.ts`.
-- **`adoptionRate` / `rampMonths`** — override the risk-scenario adoption curve.
+- **`adoptionRate` / `rampMonths`**: override the risk-scenario adoption curve.
 
 ---
 
@@ -91,7 +91,7 @@ partial, deep-mergeable object (see `types/scenarios.ts`) covering:
 The engine models stacked benefit categories. Each is computed at "base", then
 multiplied by (a) risk-scenario efficiency factors, then (b) the adoption rate,
 then (c) a deployment multiplier. Totals are the sum of adopted components. **This
-tool renders only §2.1 (ID Infrastructure);** §2.2–§2.3 are documented for
+tool renders only §2.1 (ID Infrastructure);** §2.2-§2.3 are documented for
 completeness.
 
 ### 2.1 ID Infrastructure (this tool)
@@ -106,17 +106,17 @@ completeness.
   `addressableCPM = CPM × (1 + CPM_IMPROVEMENT_FACTOR 0.25)`.
 - **CDP savings:** fixed `CDP_MONTHLY_SAVINGS = $3,500/mo` (configurable).
 - Total addressability moves from `BASELINE_TOTAL_ADDRESSABILITY = 65%` to
-  `65% + SAFARI_SHARE×improvement` (≈72–77%).
+  `65% + SAFARI_SHARE×improvement` (≈72-77%).
 
 The guided flow narrates this as an **audience-visibility story** (how much of the
 audience is invisible today, how much a durable ID recovers). Those figures are
-derived from the same engine result in `deriveAudienceVisibility()` — they are a
+derived from the same engine result in `deriveAudienceVisibility()`, they are a
 retelling of the model's addressability numbers, not new inputs.
 
 ### 2.2 CAPI Capabilities (`id-capi`+, engine-internal)
 - Match rate improves `BASELINE_MATCH_RATE 30% → IMPROVED_MATCH_RATE 75%`.
 - Campaign volume is an **output** of Business Readiness:
-  `BASE_YEARLY_CAMPAIGNS 12 × volumeMultiplier` (bounded 0.7–1.4×),
+  `BASE_YEARLY_CAMPAIGNS 12 × volumeMultiplier` (bounded 0.7-1.4×),
   `BASE_AVG_CAMPAIGN_SPEND $75K × spendMultiplier` (≤1.15×), across 12 months.
 - CAPI-eligible spend = `monthlyCampaignSpend × capiLineItemShare`.
 - Conversion uplift = `CONVERSION_RATE_MULTIPLIER 1.40 − 1` (+40%).
@@ -162,7 +162,7 @@ Fonts `<link>` in `index.html`). Utility classes: `.glass-card`, `.gradient-text
 
 > Note: adfixus.com is currently a *light* site. The dark-cyan look is canonical
 > for this tool. If seamless blending into the live site becomes the priority, flip
-> the token values in `src/index.css` (one file) to a light variant — nothing else
+> the token values in `src/index.css` (one file) to a light variant, nothing else
 > needs to change.
 
 ---
@@ -197,7 +197,7 @@ on another origin, pass `initAdfixusEmbed({ appName, parentOrigin })`.
 
 Because the guided flow hides (rather than unmounts) while the depth drawer is
 open, and the drawer renders in normal document flow, `#root` scrollHeight always
-reflects what the visitor sees — so the reported height stays correct as the
+reflects what the visitor sees, so the reported height stays correct as the
 visitor moves between the flow and the full picture.
 
 ---

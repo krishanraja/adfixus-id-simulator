@@ -1,7 +1,7 @@
-// AdFixus core — industry benchmarks & modelling constants.
+// AdFixus core - industry benchmarks & modelling constants.
 // Generalized from the Vox engine; values are generic open-web-publisher
 // defaults and can be overridden per-run via AssumptionOverrides.
-// Single source of truth — keep identical across all AdFixus tools.
+// Single source of truth - keep identical across all AdFixus tools.
 // See docs/ADFIXUS_CORE_SPEC.md for rationale behind each value.
 
 export const CAPI_BENCHMARKS = {
@@ -35,7 +35,7 @@ export const ADDRESSABILITY_BENCHMARKS = {
   BASELINE_TOTAL_ADDRESSABILITY: 0.65, // 65% of inventory currently addressable
 
   // Safari-specific addressability (the key KPI)
-  CURRENT_SAFARI_ADDRESSABILITY: 0.0, // 0% — Safari users unaddressable due to ITP
+  CURRENT_SAFARI_ADDRESSABILITY: 0.0, // 0% - Safari users unaddressable due to ITP
   TARGET_SAFARI_ADDRESSABILITY: 0.35, // 35% internal calculation target (conservative)
   POC_PROMISE_ADDRESSABILITY: 0.20, // 20% typical external POC promise
   STRETCH_SAFARI_ADDRESSABILITY: 0.40, // 40% stretch goal
@@ -78,7 +78,7 @@ export const CAPI_CAMPAIGN_VALUES = {
   CONVERSION_RATE_MULTIPLIER: 1.40, // 40% conversion improvement
 };
 
-// CAPI base parameters — campaigns are derived from Business Readiness, not manual input
+// CAPI base parameters - campaigns are derived from Business Readiness, not manual input
 export const CAPI_BASE_PARAMETERS = {
   BASE_YEARLY_CAMPAIGNS: 12, // realistic enterprise publisher baseline
   BASE_AVG_CAMPAIGN_SPEND: 75000, // $75K baseline

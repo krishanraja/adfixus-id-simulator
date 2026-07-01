@@ -1,4 +1,4 @@
-// AdFixus core — Business Readiness factors that impact ROI realization.
+// AdFixus core - Business Readiness factors that impact ROI realization.
 import type { RiskScenario } from './riskScenarios';
 
 export interface ReadinessFactors {

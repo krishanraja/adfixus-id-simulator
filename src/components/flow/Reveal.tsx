@@ -26,7 +26,7 @@ interface RevealProps {
 /**
  * The payoff screen: one hero number that counts up, a single line of meaning,
  * and one calm CTA. A small settle animation makes the moment land. This screen
- * should feel good — it is the emotional peak of the flow.
+ * should feel good - it is the emotional peak of the flow.
  */
 export const Reveal = ({
   eyebrow,

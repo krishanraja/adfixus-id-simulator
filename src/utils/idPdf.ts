@@ -45,7 +45,7 @@ const buildDoc = (results: UnifiedResults): any => {
       columns: [
         { text: 'AdFixus', style: 'brand', margin: [40, 24, 0, 0] },
         {
-          text: 'Identity Durability — Revenue Impact',
+          text: 'Identity Durability - Revenue Impact',
           style: 'reportTitle',
           alignment: 'right',
           margin: [0, 27, 40, 0],
@@ -89,7 +89,7 @@ const buildDoc = (results: UnifiedResults): any => {
             ['Safari / iOS traffic share', formatPercentage(d.safariShare, 0), formatPercentage(d.safariShare, 0)],
             ['Safari addressability', formatPercentage(d.currentSafariAddressability, 0), formatPercentage(d.targetSafariAddressability, 0)],
             ['Total inventory addressable', formatPercentage(d.currentAddressability, 0), formatPercentage(d.improvedAddressability, 0)],
-            ['Newly addressable impressions / mo', '—', formatNumber(d.newlyAddressableImpressions)],
+            ['Newly addressable impressions / mo', '-', formatNumber(d.newlyAddressableImpressions)],
           ],
         },
         layout: {

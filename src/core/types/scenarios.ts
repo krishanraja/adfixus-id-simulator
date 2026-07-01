@@ -1,4 +1,4 @@
-// AdFixus core — scenario-based calculator types.
+// AdFixus core - scenario-based calculator types.
 // Generalized from the Vox engine: inputs carry generic CoreDomain[] objects
 // instead of Vox domain IDs, so the engine is publisher-agnostic.
 import type { CoreDomain } from './domain';

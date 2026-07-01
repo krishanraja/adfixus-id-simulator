@@ -42,7 +42,7 @@ Durability Simulator lead magnet.
 ### Rebuilt
 - Rebuilt as a fully-configurable ID durability simulator **wired to the shared
   `src/core` engine** (`UnifiedCalculationEngine.calculate(..., scope: 'id-only')`)
-  — replacing the old in-component math with the verified engine.
+  - replacing the old in-component math with the verified engine.
 - Adopted the canonical **dark + bright-cyan** design system and the shared
   **embed module** (`src/core/embed/embed.ts`).
 
@@ -51,7 +51,7 @@ Durability Simulator lead magnet.
   `docs/ADFIXUS_CORE_SPEC.md`.
 
 ### Removed
-- All Supabase / backend / login remnants — the tool is 100% client-side.
+- All Supabase / backend / login remnants - the tool is 100% client-side.
 
 ---
 

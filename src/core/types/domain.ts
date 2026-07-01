@@ -1,4 +1,4 @@
-// AdFixus core — a generic publisher domain/property.
+// AdFixus core - a generic publisher domain/property.
 // Replaces the Vox-specific VoxDomain. Any tool constructs these from user
 // input (a single property for the lead magnets, or many for a portfolio).
 

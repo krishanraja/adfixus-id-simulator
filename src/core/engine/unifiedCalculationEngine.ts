@@ -1,4 +1,4 @@
-// AdFixus core — unified ROI calculation engine.
+// AdFixus core - unified ROI calculation engine.
 //
 // Generalized from the Vox engine. Models three stacked benefit categories
 // (ID Infrastructure, CAPI Capabilities, Media Performance), each modulated by

@@ -1,4 +1,4 @@
-// AdFixus core — risk scenario definitions based on organizational readiness
+// AdFixus core - risk scenario definitions based on organizational readiness
 // and execution factors. Generic across any publisher engagement.
 
 export type RiskScenario = 'conservative' | 'moderate' | 'optimistic';

@@ -35,7 +35,7 @@ export const ResultsSection = ({ results, state, visibility }: ResultsSectionPro
   const drivers = [
     {
       name: 'Recognising more of your audience',
-      note: 'Returning humans re-identified past the cookie window — sold at their true, addressable value.',
+      note: 'Returning humans re-identified past the cookie window - sold at their true, addressable value.',
       value: results.idInfrastructure.details.addressabilityRevenue,
       color: 'hsl(195 95% 55%)',
     },
@@ -61,7 +61,7 @@ export const ResultsSection = ({ results, state, visibility }: ResultsSectionPro
           <span className="font-semibold text-primary">{formatPercentage(invisiblePct, 0)}</span> of
           your audience is invisible. A durable, owned identity brings roughly{' '}
           <span className="font-semibold text-primary">{formatPercentage(recoveredPct, 0)}</span> of
-          them back into view — leaving only{' '}
+          them back into view - leaving only{' '}
           <span className="font-semibold text-foreground">{formatPercentage(stillDarkPct, 0)}</span>{' '}
           genuinely unreachable. That recovered recognition is where the numbers
           below come from.
@@ -81,13 +81,13 @@ export const ResultsSection = ({ results, state, visibility }: ResultsSectionPro
       <div>
         <h3 className="mb-1 text-lg font-semibold">It compounds, it doesn&rsquo;t switch on</h3>
         <p className="mb-4 max-w-2xl text-sm text-muted-foreground">
-          Durable identity is owned infrastructure — recognition and value build
+          Durable identity is owned infrastructure - recognition and value build
           month over month as more returning humans are re-identified.
         </p>
         <RampChart results={results} />
       </div>
 
-      {/* Where the value comes from — benefits, not line items */}
+      {/* Where the value comes from - benefits, not line items */}
       <Card className="p-6">
         <div className="mb-1 text-lg font-semibold">Where the value comes from</div>
         <p className="mb-5 text-sm text-muted-foreground">
@@ -122,7 +122,7 @@ export const ResultsSection = ({ results, state, visibility }: ResultsSectionPro
         </div>
       </Card>
 
-      {/* Calm next step — hint at the free Forensic Audit, low pressure */}
+      {/* Calm next step - hint at the free Forensic Audit, low pressure */}
       <Card className="hero-gradient flex flex-col items-center gap-5 border-primary/20 p-8 text-center md:p-10">
         <div className="max-w-xl">
           <h3 className="text-xl font-semibold md:text-2xl">
@@ -130,8 +130,8 @@ export const ResultsSection = ({ results, state, visibility }: ResultsSectionPro
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground md:text-base">
             If the picture rings true, we run a free Forensic Audit against your
-            actual site and stack — your real Safari share, your anonymous
-            majority, your exposure to AI crawlers — and hand you the numbers,
+            actual site and stack - your real Safari share, your anonymous
+            majority, your exposure to AI crawlers - and hand you the numbers,
             no obligation. A short conversation is the fastest way to start.
           </p>
         </div>
@@ -149,7 +149,7 @@ export const ResultsSection = ({ results, state, visibility }: ResultsSectionPro
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          No sales pressure — the audit is yours to keep either way.
+          No sales pressure - the audit is yours to keep either way.
         </p>
       </Card>
     </div>

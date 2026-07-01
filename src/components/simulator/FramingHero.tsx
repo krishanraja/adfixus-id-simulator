@@ -9,8 +9,8 @@ interface FramingHeroProps {
 
 /**
  * The opening provocation. Leads with the AI-era reality for an open-web
- * business — the anonymous majority going dark, cookies decaying under
- * Safari/ITP, AI crawlers eating traffic — then makes it personal with a single
+ * business - the anonymous majority going dark, cookies decaying under
+ * Safari/ITP, AI crawlers eating traffic - then makes it personal with a single
  * striking visual: how much of *this* audience is already invisible.
  *
  * Insight first. The numbers here are evidence for the idea, not a calculator.
@@ -44,12 +44,12 @@ export const FramingHero = ({ visibility, onExplore }: FramingHeroProps) => {
         <p className="mx-auto mt-5 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
           Search traffic is collapsing as AI assistants answer in place. Crawlers
           consume a rising share of requests that are not human. And under
-          Safari, ITP and cookie decay, the anonymous majority — everyone who
-          isn&rsquo;t logged in — goes dark within days. Your logged-in core is
+          Safari, ITP and cookie decay, the anonymous majority - everyone who
+          isn&rsquo;t logged in - goes dark within days. Your logged-in core is
           real, but it&rsquo;s often only 10&ndash;30% of who shows up.
         </p>
         <p className="mx-auto mt-3 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
-          The question is no longer <em>how do we target</em> — it&rsquo;s{' '}
+          The question is no longer <em>how do we target</em> - it&rsquo;s{' '}
           <span className="font-medium text-foreground">
             do we still recognise the humans on our own site
           </span>
@@ -82,7 +82,7 @@ export const FramingHero = ({ visibility, onExplore }: FramingHeroProps) => {
               {formatPercentage(visiblePct, 0)}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              addressable right now — the sliver advertisers can still credit and
+              addressable right now - the sliver advertisers can still credit and
               buy against.
             </p>
           </figure>
@@ -119,7 +119,7 @@ const VisibilityBar = ({
       <span>100%</span>
     </div>
     <div className="flex h-14 w-full overflow-hidden rounded-xl border border-border">
-      {/* Invisible majority — hatched, receding into the dark. */}
+      {/* Invisible majority - hatched, receding into the dark. */}
       <div
         className="relative flex items-center justify-center transition-[flex-basis] duration-700"
         style={{
@@ -134,7 +134,7 @@ const VisibilityBar = ({
           </span>
         )}
       </div>
-      {/* The recognisable sliver — lit. */}
+      {/* The recognisable sliver - lit. */}
       <div
         className="relative flex items-center justify-center bg-gradient-to-r from-primary to-primary-glow transition-[flex-basis] duration-700"
         style={{ flexBasis: `${visiblePct}%` }}

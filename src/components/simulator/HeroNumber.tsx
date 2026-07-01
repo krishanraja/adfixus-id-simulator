@@ -41,7 +41,7 @@ export const HeroNumber = ({
           <span className="font-semibold text-foreground">
             {formatPercentage(recoveredPct, 0)}
           </span>{' '}
-          of them back within reach — worth, on your inputs, about
+          of them back within reach - worth, on your inputs, about
         </p>
 
         <div className="text-6xl font-bold leading-none tracking-tight text-primary drop-shadow-[0_0_25px_hsl(var(--primary)/0.35)] md:text-8xl">
@@ -52,7 +52,7 @@ export const HeroNumber = ({
         </div>
 
         <p className="mx-auto max-w-2xl text-base text-muted-foreground md:text-lg">
-          in recovered ad revenue —{' '}
+          in recovered ad revenue -{' '}
           <span className="font-semibold text-foreground">
             {formatCurrency(monthlyUplift)}/month
           </span>{' '}

@@ -1,4 +1,4 @@
-// AdFixus core — aggregate metrics across one or more domains, weighted by
+// AdFixus core - aggregate metrics across one or more domains, weighted by
 // pageview volume. Generalized: operates on generic CoreDomain[] passed in by
 // the caller (no hardcoded portfolio).
 import type { CoreDomain } from '../types/domain';

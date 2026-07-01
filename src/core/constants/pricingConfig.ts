@@ -1,11 +1,11 @@
-// AdFixus core — commercial pricing config (used by the internal sales tool).
+// AdFixus core - commercial pricing config (used by the internal sales tool).
 //
 // These are the AdFixus RATE-CARD defaults. Every value is intended to be
 // surfaced as an editable slider/input in the sales tool so a seller can model
-// any deal — start from rate card, then apply discounts as levers. None of
+// any deal - start from rate card, then apply discounts as levers. None of
 // these are tied to any specific customer's negotiated terms.
 //
-// NOTE: lead-magnet tools (id-simulator, capi-calculator) do NOT import this —
+// NOTE: lead-magnet tools (id-simulator, capi-calculator) do NOT import this -
 // they show customer benefits only, never AdFixus pricing.
 
 export interface PricingConfig {
@@ -28,7 +28,7 @@ export interface PricingConfig {
   streamEventFeePerThousand: number; // $ per 1,000 stream events
   additionalDomainFee: number;    // $/month per additional domain
 
-  // Discount levers (0 = no discount) — sliders in the UI
+  // Discount levers (0 = no discount) - sliders in the UI
   contractDiscountPercent: number; // % off rate card for a committed contract
   pocDiscountPercent: number;      // % off during POC
   annualFeeIncrease: number;       // annual uplift applied in multi-year models

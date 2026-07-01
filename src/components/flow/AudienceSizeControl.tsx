@@ -15,7 +15,7 @@ const PRESETS: { label: string; sub: string; value: number }[] = [
   { label: 'At scale', sub: '~1B/mo', value: 1_000_000_000 },
 ];
 
-// Log-scaled slider so 1M–2B feels linear to drag.
+// Log-scaled slider so 1M-2B feels linear to drag.
 const MIN = 1_000_000;
 const MAX = 2_000_000_000;
 const toSlider = (v: number) =>

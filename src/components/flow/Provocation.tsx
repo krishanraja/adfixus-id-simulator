@@ -6,7 +6,7 @@ import { settleVariants, reducedVariants } from './motion';
 interface ProvocationProps {
   /** Small uppercase eyebrow above the headline. */
   eyebrow?: string;
-  /** The one bold editorial line (44–72px). Accepts rich content for accents. */
+  /** The one bold editorial line (44-72px). Accepts rich content for accents. */
   headline: ReactNode;
   /** A single quiet supporting sentence. */
   support: ReactNode;

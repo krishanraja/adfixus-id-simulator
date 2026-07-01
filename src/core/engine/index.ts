@@ -1,4 +1,4 @@
-// AdFixus core — public engine API.
+// AdFixus core - public engine API.
 //
 // The simulator UI (`src/hooks/useIdSimulator.ts`) drives the engine directly
 // via `UnifiedCalculationEngine.calculate(...)`. This barrel re-exports the

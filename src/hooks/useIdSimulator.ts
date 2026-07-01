@@ -116,7 +116,7 @@ function deploymentFor(count: number): ScenarioState['deployment'] {
 /**
  * Narrative framing metrics derived from the same state + engine results.
  *
- * These do NOT touch the engine — they translate the model's addressability
+ * These do NOT touch the engine - they translate the model's addressability
  * figures into the "how much of your audience is invisible today, and what a
  * durable owned identity recovers" story that leads the experience. Numbers are
  * evidence for the idea, not new inputs.

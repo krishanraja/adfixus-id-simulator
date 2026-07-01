@@ -1,4 +1,4 @@
-// AdFixus core — iframe embedding module.
+// AdFixus core - iframe embedding module.
 //
 // Makes any AdFixus tool safely embeddable in adfixus.com (or any parent page)
 // by reporting its content height to the parent via postMessage, so the parent
@@ -47,7 +47,7 @@ export function initAdfixusEmbed(options: EmbedOptions = {}): void {
     if (!isInIframe) return;
 
     const height = Math.round(getDocHeight());
-    // Only send if the change is meaningful (>10px) — prevents feedback loops.
+    // Only send if the change is meaningful (>10px) - prevents feedback loops.
     if (Math.abs(height - lastSentHeight) < 10) return;
     lastSentHeight = height;
 

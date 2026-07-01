@@ -17,7 +17,7 @@ interface IdSimulatorProps {
   /**
    * Share a simulator instance from the guided flow so the audience size chosen
    * in the flow carries into the full picture (and vice-versa). When omitted,
-   * the component owns its own state — the original standalone behaviour.
+   * the component owns its own state - the original standalone behaviour.
    */
   simulator?: Simulator;
   /**
@@ -76,11 +76,11 @@ export const IdSimulator = ({ simulator, embedded = false }: IdSimulatorProps = 
       {!embedded && <AppHeader />}
 
       <main className="container mx-auto max-w-5xl px-4 pb-20 pt-4 md:pt-8">
-        {/* 1. Framing — the AI-era provocation, made personal. Suppressed when
+        {/* 1. Framing - the AI-era provocation, made personal. Suppressed when
             embedded in the drawer (the guided flow has already provoked). */}
         {!embedded && <FramingHero visibility={visibility} onExplore={scrollToConfigure} />}
 
-        {/* 2. See your own situation — the configurable inputs, framed as their business */}
+        {/* 2. See your own situation - the configurable inputs, framed as their business */}
         <section ref={configureRef} className={embedded ? 'scroll-mt-20' : 'mt-20 scroll-mt-20'}>
           <div className="mb-8 max-w-2xl">
             <div className="mb-3 text-xs font-medium uppercase tracking-widest text-primary">
@@ -91,7 +91,7 @@ export const IdSimulator = ({ simulator, embedded = false }: IdSimulatorProps = 
             </h2>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground">
               A few inputs about your traffic and monetisation. Everything
-              recalculates live — treat the sliders as a way to explore, not a
+              recalculates live - treat the sliders as a way to explore, not a
               form to complete. Nothing leaves your browser.
             </p>
           </div>
@@ -121,7 +121,7 @@ export const IdSimulator = ({ simulator, embedded = false }: IdSimulatorProps = 
           </div>
         </section>
 
-        {/* 3. The narrative result — how much is invisible, what durable ID recovers */}
+        {/* 3. The narrative result - how much is invisible, what durable ID recovers */}
         <section className="mt-16">
           <div className="mb-8 flex items-end justify-between gap-4">
             <div className="max-w-2xl">
@@ -132,7 +132,7 @@ export const IdSimulator = ({ simulator, embedded = false }: IdSimulatorProps = 
                 Here&rsquo;s what you&rsquo;re leaving in the dark
               </h2>
               <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                Your anonymous majority isn&rsquo;t lost — it&rsquo;s unrecognised.
+                Your anonymous majority isn&rsquo;t lost - it&rsquo;s unrecognised.
                 A durable, first-party identity you own re-recognises returning
                 humans past the cookie window, so more of your real audience
                 becomes addressable and measurable again.

@@ -13,13 +13,13 @@ interface DepthDrawerProps {
 
 /**
  * The progressive-depth surface. A quiet affordance elsewhere opens this panel,
- * which slides + scales in to reveal ALL the existing richness — full sliders,
- * domain portfolio, advanced panel, waterfall, ramp chart, breakdowns —
+ * which slides + scales in to reveal ALL the existing richness - full sliders,
+ * domain portfolio, advanced panel, waterfall, ramp chart, breakdowns -
  * completely unchanged. Nothing is removed; it is simply hidden by default and
  * reachable in one click.
  *
  * It renders in normal document flow (not `position: fixed`) so it contributes
- * to `#root` scrollHeight — which keeps the iframe-embed height reporting
+ * to `#root` scrollHeight - which keeps the iframe-embed height reporting
  * correct when the full picture is open.
  */
 export const DepthDrawer = ({

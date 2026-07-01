@@ -1,4 +1,4 @@
-# Handover — AdFixus ID Durability Simulator
+# Handover - AdFixus ID Durability Simulator
 
 A fast orientation for the engineer taking this over. For the full picture read
 **[README.md](README.md)**; for the engine internals read
@@ -7,13 +7,13 @@ A fast orientation for the engineer taking this over. For the full picture read
 ## What this is
 
 A **public, embeddable lead magnet** for open-web publishers. It answers one
-question — *how much ad revenue is a durable, first-party identity worth to you?* —
+question - *how much ad revenue is a durable, first-party identity worth to you?* -
 through a calm, Apple-grade guided flow, with a full configurable simulator one
 click away for anyone who wants to see the working.
 
 The framing is deliberately **AI-era and consultative**: the anonymous majority
 has gone dark (cookie decay, Safari/ITP, AI crawlers), and the tool quantifies the
-audience — and the revenue — a durable owned identity brings back into view. It is
+audience - and the revenue - a durable owned identity brings back into view. It is
 a conversation starter, not a commercial offer.
 
 ## The 5-minute mental model
@@ -45,7 +45,7 @@ Index.tsx → GuidedFlow ──owns──► useIdSimulator()  ──calls──
 | The full simulator inputs | `src/components/simulator/BasicInputs.tsx`, `DomainPortfolio.tsx`, `AdvancedPanel.tsx` |
 | Results / charts / PDF | `src/components/simulator/ResultsSection.tsx` + `results/*`, `src/utils/idPdf.ts` |
 | Inputs ↔ engine wiring | `src/hooks/useIdSimulator.ts` |
-| The math, benchmarks, defaults | `src/core/` (see core spec) — do not fork per-repo |
+| The math, benchmarks, defaults | `src/core/` (see core spec) - do not fork per-repo |
 | The booking link | `VITE_MEETING_BOOKING_URL` (see `.env.example`) |
 | Brand tokens (dark + cyan) | `src/index.css` (`:root`) + `tailwind.config.ts` |
 | Embed behaviour | `src/core/embed/embed.ts`, initialised in `src/main.tsx` |
@@ -54,17 +54,17 @@ Index.tsx → GuidedFlow ──owns──► useIdSimulator()  ──calls──
 
 The depth-drawer simulator exposes the full model:
 
-- **`BasicInputs`** — pageviews, display/video CPM, execution outlook (risk).
-- **`AdvancedPanel`** ("Configure assumptions") — Safari share, baseline &
+- **`BasicInputs`** - pageviews, display/video CPM, execution outlook (risk).
+- **`AdvancedPanel`** ("Configure assumptions") - Safari share, baseline &
   recovered addressability, CPM-uplift factor, contextual-CPM ratio, CDP savings,
   plus the **8 readiness sliders** (sales readiness, advertiser buy-in,
   organisational ownership, market conditions, training, integration reliability,
   resource availability, technical deployment). These flow into the engine as
   `AssumptionOverrides` (core spec §2.2).
-- **`DomainPortfolio`** — model 1..N domains, aggregated by the engine.
+- **`DomainPortfolio`** - model 1..N domains, aggregated by the engine.
 
 Everything recalculates live; nothing leaves the browser. To add a new lever,
-extend `AdvancedPanel` + the overrides object in `useIdSimulator` — no engine
+extend `AdvancedPanel` + the overrides object in `useIdSimulator` - no engine
 change needed.
 
 ## What to do next
@@ -72,9 +72,9 @@ change needed.
 1. **Run it:** `npm install && npm run dev` (port 8080). No env needed.
 2. **Build / lint:** `npm run build` and `npm run lint` both pass clean. The only
    lint warnings are the vendored shadcn `react-refresh` notices on
-   `ui/badge.tsx` and `ui/button.tsx` — expected, safe to ignore.
+   `ui/badge.tsx` and `ui/button.tsx` - expected, safe to ignore.
 3. **Deploy:** static SPA on Vercel (preset Vite, output `dist/`, SPA rewrite
-   `/* → /index.html`). Public — no auth.
+   `/* → /index.html`). Public - no auth.
 4. **Embed on adfixus.com:** drop the iframe + `message` snippet from the README /
    core spec §4 onto the page; it auto-resizes.
 

@@ -20,7 +20,7 @@ interface FlowShellProps {
  * slight scale on a spring (~0.4s), and collapse to a plain crossfade when the
  * visitor prefers reduced motion.
  *
- * Identical structure/name across all three AdFixus tools — this is what makes
+ * Identical structure/name across all three AdFixus tools - this is what makes
  * them feel like one product.
  */
 export const FlowShell = ({ step, stepCount, onStepSelect, children }: FlowShellProps) => {

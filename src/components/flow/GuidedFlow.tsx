@@ -16,9 +16,9 @@ const STEP_COUNT = 3;
  * The Apple-grade guided surface for the ID Durability Simulator.
  *
  * Default path is three screens with almost no input:
- *   1. Provocation — the anonymous majority is going dark.
- *   2. AskStep — roughly how big is your audience (one tactile control).
- *   3. Reveal — the annual value a durable owned identity brings back into view.
+ *   1. Provocation - the anonymous majority is going dark.
+ *   2. AskStep - roughly how big is your audience (one tactile control).
+ *   3. Reveal - the annual value a durable owned identity brings back into view.
  *
  * All the existing richness (full sliders, portfolio, advanced panel, waterfall,
  * ramp chart, breakdowns) is unchanged and lives one click away in the
@@ -57,7 +57,7 @@ export const GuidedFlow = () => {
                 <span className="gradient-text">dark</span>.
               </>
             }
-            support="Cookies decay, Safari and ITP blind the anonymous majority, and AI crawlers eat the rest. The question isn't how to target — it's whether you still recognise the humans on your own site."
+            support="Cookies decay, Safari and ITP blind the anonymous majority, and AI crawlers eat the rest. The question isn't how to target - it's whether you still recognise the humans on your own site."
             cta="Show me what's at stake"
             onContinue={() => setStep(1)}
           />
@@ -72,7 +72,7 @@ export const GuidedFlow = () => {
                 <span className="text-primary">audience</span>?
               </>
             }
-            hint="A rough sense is all we need — everything else is inferred from open-web benchmarks. You can fine-tune anything later."
+            hint="A rough sense is all we need - everything else is inferred from open-web benchmarks. You can fine-tune anything later."
             onContinue={() => setStep(2)}
             onBack={() => setStep(0)}
           >
@@ -95,7 +95,7 @@ export const GuidedFlow = () => {
                 <span className="font-semibold text-foreground">
                   {formatPercentage(recoveredPct, 0)}
                 </span>{' '}
-                of them back within reach — recovered ad revenue that compounds as
+                of them back within reach - recovered ad revenue that compounds as
                 durable identity takes hold.
               </>
             }
