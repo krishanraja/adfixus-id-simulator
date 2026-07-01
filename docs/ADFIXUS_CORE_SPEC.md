@@ -202,7 +202,72 @@ visitor moves between the flow and the full picture.
 
 ---
 
-## 5. Client-side outputs
+## 5. Domain intelligence (`src/core/intel/`)
+
+The guided flow opens by asking for the visitor's website and tailoring the audit
+to it. This layer is **pure data + functions, fully client-side** - it never calls
+a backend of ours. It sits alongside the engine but is independent of the math.
+
+```
+src/core/intel/
+  verticals.ts       # 7 vertical archetypes: input seeds + 4-part narrative + role proof
+  knownDomains.ts    # AUTO-GENERATED: 130 companies / 239 domains from the research sheet
+  resolveDomain.ts   # normalise → known-domain → keyword heuristics → generic fallback
+  logo.ts            # ordered logo/favicon URL candidates for a domain
+  index.ts           # @/core/intel barrel
+```
+
+### 5.1 Resolution
+
+`resolveDomainProfile(input)` returns a `DomainProfile` and never throws:
+
+1. **Normalise** - strip scheme/path/`www.`/port, lower-case, reduce to the
+   registrable domain (handles multi-label SLDs like `co.uk`, `com.au`). Junk input
+   (no dot, spaces, `@`) yields `emptyProfile()` - a generic open-web publisher.
+2. **Known account** - exact registrable-domain match against `DOMAIN_TO_COMPANY`
+   → the real company, vertical, anon share, Tranco rank, stack sophistication, and
+   the verbatim identity-gap / hook from the research sheet (`match: 'known'`).
+3. **Heuristic** - keyword patterns on the domain infer a vertical (`match:
+   'heuristic'`).
+4. **Fallback** - the default `news` archetype (`match: 'default'`).
+
+### 5.2 Vertical archetypes (`verticals.ts`)
+
+The seven verticals - `news`, `broadcast`, `lifestyle`, `entertainment`, `b2b`,
+`classifieds`, `localnews` - each carry:
+
+- **`seeds`** - directional open-web benchmarks (Safari share, display/video split,
+  display/video CPM, ads/page, anon %, typical pageviews) applied to the simulator
+  by `GuidedFlow.applyProfile()` so the model is pre-filled, then freely adjustable.
+- **The four-part narrative** - `context` (hook grounded in their world) →
+  `identityGap` (the wedge) → `whatItCosts` → `adfixusMapping` - mirroring the
+  AdFixus account-research "final prompt" output structure.
+- **`proof`** - a `Revenue` / `Ad-ops` / `Data` proof metric (`stat`, `statLabel`,
+  `benchmark`, `source`). **These are published AdFixus benchmarks only** (e.g.
+  Carsales +25% revenue; a broadcaster surfacing 600k Safari users in six weeks;
+  100% first-party match with zero PII). No company-specific numbers are invented.
+
+`TailoredBriefing` renders this - compact on the Reveal screen, full atop the depth
+drawer - with a stakeholder-lens toggle that swaps the proof metric.
+
+### 5.3 Regenerating `knownDomains.ts`
+
+`knownDomains.ts` is generated from the AdFixus account-research spreadsheet
+("Company Scores" tab), not hand-maintained. It is a DRY structure - a
+`KNOWN_COMPANIES` array plus a `DOMAIN_TO_COMPANY` index (flagship + portfolio
+domains → company). All facts derive from public BuiltWith / People Data Labs
+research. Regenerate from the sheet rather than editing entries by hand.
+
+### 5.4 Logos (`logo.ts` + `BrandLogo`)
+
+`logoCandidates(domain)` returns an ordered URL list - the Brandfetch Logo CDN
+(only when `VITE_BRANDFETCH_CLIENT_ID` is set) then public favicon services
+(DuckDuckGo, Google). `BrandLogo` renders them via `<img>` and walks the list on
+each error, ending on a neutral globe. Per Brandfetch's hotlinking policy these
+URLs are for direct browser rendering; nothing is fetched or stored server-side,
+so the tool stays 100% client-side with or without a client id.
+
+## 6. Client-side outputs
 
 - **PDF**: `src/utils/idPdf.ts` generates a proposal PDF fully client-side with
   pdfmake (lazy-loaded so it doesn't weigh down first paint). Nothing is emailed or

@@ -2,8 +2,8 @@
 
 A **public, embeddable lead magnet** that shows an open-web publisher, in one
 number, what a **durable, first-party identity** is worth to them. On the
-AI-saturated web the anonymous majority has gone dark, cookies decay, Safari/ITP
-blind returning visitors, AI crawlers eat the rest, so most publishers can no
+AI-saturated web the anonymous majority has gone dark - cookies decay, Safari/ITP
+blind returning visitors, AI crawlers eat the rest - so most publishers can no
 longer recognise the humans on their own site. This tool makes that loss concrete
 and quantifies the ad revenue a durable owned identity brings back into view.
 
@@ -12,19 +12,24 @@ into **adfixus.com**. The headline is produced by the same verified `@/core`
 engine used across AdFixus, so the number survives scrutiny later in a sales
 conversation.
 
-## The experience: an Apple-grade guided flow
+## The experience - an Apple-grade guided flow
 
-The default surface (`src/components/flow/*`) is a calm, three-screen guided flow.
+The default surface (`src/components/flow/*`) is a calm, four-screen guided flow.
 It asks for almost nothing, then reveals the payoff:
 
-1. **Provocation**: the anonymous majority is already dark.
-2. **Ask**: one tactile control: *roughly how big is your audience?* Everything
-   else is inferred from open-web benchmarks.
-3. **Reveal**: an animated hero number: the annual ad revenue a durable owned
-   identity brings back into view, with one calm "book a conversation" CTA.
+1. **Provocation** - the anonymous majority is already dark.
+2. **Domain** - the visitor types their website; the tool recognises the business
+   (real logo, vertical) and **pre-fills the model** from open-web benchmarks. This
+   is the "magic populate" moment - see *Domain intelligence* below.
+3. **Ask** - one tactile control: *roughly how big is your audience?* pre-seeded
+   from the vertical; everything else is inferred.
+4. **Reveal** - an animated hero number (the annual ad revenue a durable owned
+   identity brings back) *plus a briefing tailored to that business* - its identity
+   gap, what it costs, how AdFixus closes it, and a role-calibrated proof metric -
+   with one calm "book a conversation" CTA.
 
 From the reveal, **"See the full picture / Customise"** opens a **depth drawer**
-holding the complete configurable simulator (`src/components/simulator/*`):
+holding the complete configurable simulator (`src/components/simulator/*`) -
 multi-domain portfolio, CPMs, an advanced "Configure assumptions" panel, the
 8 readiness sliders, an addressability waterfall, a ramp chart, metric cards, and
 a downloadable PDF. The flow and the drawer **share one simulator instance**, so
@@ -55,6 +60,30 @@ GuidedFlow  ─────────► useIdSimulator()  ──────�
   recovery + CPM delta + CDP savings). See **[docs/ADFIXUS_CORE_SPEC.md](docs/ADFIXUS_CORE_SPEC.md)**
   for the formulas, benchmarks, and `AssumptionOverrides` surface.
 
+## Domain intelligence (`src/core/intel/`)
+
+When a visitor types their domain, the tool tailors everything around their
+business - **fully client-side, no backend call of ours**:
+
+- **Recognise the business.** `resolveDomain.ts` normalises the input to a
+  registrable domain and resolves a `DomainProfile`: an exact match against a
+  bundled dataset of real open-web publishers (`knownDomains.ts`, auto-generated
+  from AdFixus account research) → keyword heuristics for the vertical → a generic
+  open-web fallback.
+- **Pre-fill the model.** Each of the seven vertical archetypes (`verticals.ts`)
+  carries directional input seeds (Safari share, display/video split, CPMs, anon %)
+  so the simulator lands in the right ballpark before a slider is touched.
+- **Tailor the recommendation.** The same archetype supplies the four-part briefing
+  (context → identity gap → what it costs → how AdFixus closes it) and a
+  **Revenue / Ad-ops / Data** proof metric versus an industry benchmark. Every proof
+  figure is a *published* AdFixus benchmark; nothing company-specific is invented.
+- **Show their real logo.** `BrandLogo` renders the visitor's logo via the
+  Brandfetch Logo CDN (if `VITE_BRANDFETCH_CLIENT_ID` is set) with public favicon
+  fallbacks - rendered directly by the browser, never fetched or stored by us.
+
+The tool works with zero configuration; a Brandfetch client id only upgrades the
+logo fidelity.
+
 ## Run it
 
 ```bash
@@ -66,7 +95,7 @@ npm run lint
 ```
 
 No environment setup is required to run it. The only variable is
-`VITE_MEETING_BOOKING_URL`, the "book a conversation" link (see **Env** below and
+`VITE_MEETING_BOOKING_URL` - the "book a conversation" link (see **Env** below and
 `.env.example`).
 
 ## Env
@@ -75,18 +104,19 @@ No environment setup is required to run it. The only variable is
 |----------|---------|---------|
 | `VITE_MEETING_BOOKING_URL` | The booking link behind the CTAs. | AdFixus sales booking URL |
 | `VITE_COMPANY_NAME` *(optional)* | Company name shown in the UI. | `AdFixus` |
+| `VITE_BRANDFETCH_CLIENT_ID` *(optional)* | Public Brandfetch Logo CDN client id - shows visitors' real brand logos on the domain step. Falls back to public favicon services when unset. **Public value only; never a secret API key.** | *(unset → favicon fallback)* |
 
 `VITE_*` values are baked into the client bundle at build time, so they must only
 ever hold **public** information. There are no secrets in this app.
 
 ## Deploy on Vercel (public)
 
-It is a static SPA, deploy on Vercel (or any static host):
+It is a static SPA - deploy on Vercel (or any static host):
 
 - Framework preset **Vite**, build `npm run build`, output directory `dist/`.
 - Add the SPA rewrite so deep links resolve: `/* → /index.html`.
 - Set `VITE_MEETING_BOOKING_URL` if you want a custom booking link.
-- This tool is **public**, no auth.
+- This tool is **public** - no auth.
 
 ## Embed it in adfixus.com
 
@@ -125,16 +155,18 @@ src/
   App.tsx                      Router + TooltipProvider shell
   config.ts                    Reads VITE_* env (booking URL, company name)
   pages/
-    Index.tsx                  Renders <GuidedFlow />, the whole app
+    Index.tsx                  Renders <GuidedFlow /> - the whole app
     NotFound.tsx               Catch-all route
   components/
     flow/                      The Apple-grade guided flow (default surface)
-      GuidedFlow.tsx           Orchestrates steps + owns the shared simulator
+      GuidedFlow.tsx           Orchestrates steps + owns the shared simulator + domain profile
       FlowShell.tsx            Full-viewport stage: wordmark, progress dots, transitions
-      Provocation.tsx          Step 0: the anonymous majority is going dark
-      AskStep.tsx              Step 1 wrapper: one question
+      Provocation.tsx          Step 0 - the anonymous majority is going dark
+      DomainStep.tsx           Step 1 - recognise the visitor's site & pre-fill the model
+      AskStep.tsx              Step 2 wrapper - one question (audience size)
       AudienceSizeControl.tsx  The single tactile audience-size control
-      Reveal.tsx               Step 2: animated hero number + CTA
+      Reveal.tsx               Step 3 - animated hero number + tailored briefing + CTA
+      TailoredBriefing.tsx     Business-tailored recommendation (context→gap→AdFixus→proof)
       DepthDrawer.tsx          Slides in the full configurable simulator
       motion.ts                Shared framer-motion variants
     simulator/                 The full configurable simulator (in the drawer)
@@ -148,15 +180,17 @@ src/
       ResultsSection.tsx       Charts, breakdowns, PDF + CTA
       results/                 MetricCards, AddressabilityWaterfall, RampChart, DisplayVideoBreakdown
     ui/                        Vendored shadcn/ui primitives (only the used ones)
-    brand/AdfixusLogo.tsx      Wordmark
+    brand/AdfixusLogo.tsx      Real AdFixus wordmark/glyph (bundled brand SVG)
+    brand/BrandLogo.tsx        The visitor's own logo (Brandfetch CDN + favicon fallback)
     AppHeader.tsx              Standalone header (suppressed when embedded)
   hooks/
     useIdSimulator.ts          State + @/core engine bridge (source of truth)
     useAnimatedNumber.ts       Count-up animation for hero numbers
-  core/                        Verified AdFixus calculation engine, see core spec
+  core/                        Verified AdFixus calculation engine - see core spec
     engine/                    UnifiedCalculationEngine + domain aggregation
     constants/                 Benchmarks, risk scenarios, readiness, pricing rate card
     types/                     Domain + scenario/override types
+    intel/                     Domain intelligence: verticals, known-domain map, resolver, logo
     embed/embed.ts             Iframe height-reporting module
     index.ts                   @/core public barrel
   utils/
@@ -167,10 +201,10 @@ src/
 
 ## Docs
 
-- **[docs/ADFIXUS_CORE_SPEC.md](docs/ADFIXUS_CORE_SPEC.md)**: the engine (math,
+- **[docs/ADFIXUS_CORE_SPEC.md](docs/ADFIXUS_CORE_SPEC.md)** - the engine (math,
   benchmarks, `AssumptionOverrides`), the design system, and the embed protocol.
-- **[HANDOVER.md](HANDOVER.md)**: a fast orientation for a new owner.
-- **[SECURITY.md](SECURITY.md)**: the (small) security surface.
+- **[HANDOVER.md](HANDOVER.md)** - a fast orientation for a new owner.
+- **[SECURITY.md](SECURITY.md)** - the (small) security surface.
 
 ## Tech stack
 

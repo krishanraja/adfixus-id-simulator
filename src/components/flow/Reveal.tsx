@@ -21,6 +21,8 @@ interface RevealProps {
   /** Optional quiet secondary action to reveal full depth. */
   secondaryLabel?: string;
   onSecondary?: () => void;
+  /** Optional panel rendered between the meaning line and the CTAs. */
+  panel?: ReactNode;
 }
 
 /**
@@ -38,6 +40,7 @@ export const Reveal = ({
   ctaHref,
   secondaryLabel,
   onSecondary,
+  panel,
 }: RevealProps) => {
   const reduce = useReducedMotion();
   const variants = reduce ? reducedVariants : settleVariants;
@@ -89,6 +92,18 @@ export const Reveal = ({
       >
         {meaning}
       </motion.p>
+
+      {panel && (
+        <motion.div
+          variants={variants}
+          initial="initial"
+          animate="animate"
+          transition={reduce ? undefined : { delay: 0.24 }}
+          className="mx-auto mt-8 max-w-md"
+        >
+          {panel}
+        </motion.div>
+      )}
 
       <motion.div
         variants={variants}

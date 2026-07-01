@@ -15,6 +15,41 @@ Durability Simulator lead magnet.
 
 ---
 
+## [4.0.0] - Real branding + domain intelligence (current)
+
+The audit now recognises the visitor's business from their domain and tailors
+everything around it - still 100% client-side, no backend of ours.
+
+### Added
+- **Domain-intelligence layer** (`src/core/intel/`): a new guided-flow step asks
+  for the visitor's website and resolves a `DomainProfile` entirely in the browser
+  - exact match against a bundled dataset of real open-web publishers
+  (`knownDomains.ts`, 130 companies / 239 domains, auto-generated from AdFixus
+  account research) → keyword heuristics for the vertical → a generic fallback.
+- **Pre-filled model**: seven vertical archetypes (`verticals.ts`) seed the
+  simulator (Safari share, display/video split, CPMs, anon %) so it lands in the
+  right ballpark before a slider is touched - every value still freely adjustable.
+- **Tailored briefing** (`TailoredBriefing.tsx`): a recommendation mirroring the
+  AdFixus research playbook - context hook → identity gap → what it costs → how a
+  publisher-owned durable ID closes it - with a **Revenue / Ad-ops / Data** proof
+  metric versus an industry benchmark. Shown compact on the reveal, full atop the
+  drawer. All proof figures are *published* AdFixus benchmarks; nothing
+  company-specific is invented.
+- **Visitor's real logo** (`BrandLogo.tsx`, `intel/logo.ts`): rendered in-browser
+  via the Brandfetch Logo CDN when `VITE_BRANDFETCH_CLIENT_ID` is set, falling back
+  to public favicon services. New optional env var; zero-config still works.
+
+### Changed
+- **Real AdFixus brand mark**: `AdfixusLogo` now renders the official brand SVG
+  (bundled `src/assets/adfixus-wordmark.svg`) - the cyan arrow glyph + white
+  wordmark - replacing the previous hand-drawn placeholder.
+- Guided flow is now four screens (Provocation → **Domain** → Ask → Reveal); the
+  reveal and the full simulator lead with the business-tailored briefing.
+- Docs updated: `README.md`, `HANDOVER.md`, `docs/ADFIXUS_CORE_SPEC.md` (§5),
+  `.env.example`.
+
+---
+
 ## [3.1.0] - Production cleanup (current)
 
 ### Changed

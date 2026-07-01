@@ -7,7 +7,9 @@ import { BasicInputs } from './BasicInputs';
 import { AdvancedPanel } from './AdvancedPanel';
 import { ResultsSection } from './ResultsSection';
 import { AdfixusLogo } from '@/components/brand/AdfixusLogo';
+import { TailoredBriefing } from '@/components/flow/TailoredBriefing';
 import { useIdSimulator, DEFAULTS } from '@/hooks/useIdSimulator';
+import type { DomainProfile } from '@/core/intel';
 
 const approxEq = (a: number, b: number) => Math.abs(a - b) < 0.0001;
 
@@ -25,9 +27,14 @@ interface IdSimulatorProps {
    * the opening provocation) is redundant, so it is suppressed.
    */
   embedded?: boolean;
+  /**
+   * The resolved domain profile from the guided flow. When present (and a real
+   * domain was recognised), the full tailored briefing leads the view.
+   */
+  profile?: DomainProfile;
 }
 
-export const IdSimulator = ({ simulator, embedded = false }: IdSimulatorProps = {}) => {
+export const IdSimulator = ({ simulator, embedded = false, profile }: IdSimulatorProps = {}) => {
   const owned = useIdSimulator();
   const {
     state,
@@ -80,14 +87,24 @@ export const IdSimulator = ({ simulator, embedded = false }: IdSimulatorProps = 
             embedded in the drawer (the guided flow has already provoked). */}
         {!embedded && <FramingHero visibility={visibility} onExplore={scrollToConfigure} />}
 
+        {/* 0. The tailored briefing leads the full picture when we recognised a
+            business in the guided flow. */}
+        {profile?.domain && (
+          <section className={embedded ? '' : 'mt-16'}>
+            <TailoredBriefing profile={profile} />
+          </section>
+        )}
+
         {/* 2. See your own situation - the configurable inputs, framed as their business */}
-        <section ref={configureRef} className={embedded ? 'scroll-mt-20' : 'mt-20 scroll-mt-20'}>
+        <section ref={configureRef} className={embedded ? 'mt-12 scroll-mt-20' : 'mt-20 scroll-mt-20'}>
           <div className="mb-8 max-w-2xl">
             <div className="mb-3 text-xs font-medium uppercase tracking-widest text-primary">
               Step 1 · Describe your business
             </div>
             <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Let&rsquo;s ground this in your reality
+              {profile?.domain
+                ? `Let’s ground this in ${profile.company}’s reality`
+                : 'Let’s ground this in your reality'}
             </h2>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground">
               A few inputs about your traffic and monetisation. Everything
