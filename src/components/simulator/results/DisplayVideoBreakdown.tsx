@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip } from 'recharts';
 import { formatCurrency, formatPercentage } from '@/utils/formatting';
 import type { UnifiedResults } from '@/core';
 import type { IdSimulatorState } from '@/hooks/useIdSimulator';
@@ -61,37 +61,41 @@ export const DisplayVideoBreakdown = ({ results, state }: DisplayVideoBreakdownP
       </p>
 
       <div className="flex flex-col items-center gap-6 sm:flex-row">
+        {/* Fixed 180x180 render: the box is a fixed size, so a deterministic
+            PieChart avoids ResponsiveContainer's initial-measure race (which
+            otherwise collapses the donut to a sliver inside animated/tab panels). */}
         <div className="h-[180px] w-[180px] shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                innerRadius={52}
-                outerRadius={80}
-                paddingAngle={3}
-                stroke="none"
-              >
-                {chartData.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
-              </Pie>
-              <RechartsTooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const p = payload[0].payload as { name: string; value: number };
-                    return (
-                      <div className="rounded-lg border border-border bg-popover p-2 text-xs shadow-xl">
-                        <span className="font-semibold">{p.name}: </span>
-                        {formatCurrency(p.value)}/mo
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <PieChart width={180} height={180}>
+            <Pie
+              data={chartData}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              innerRadius={52}
+              outerRadius={80}
+              paddingAngle={3}
+              stroke="none"
+              isAnimationActive={false}
+            >
+              {chartData.map((entry) => (
+                <Cell key={entry.name} fill={entry.color} />
+              ))}
+            </Pie>
+            <RechartsTooltip
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const p = payload[0].payload as { name: string; value: number };
+                  return (
+                    <div className="rounded-lg border border-border bg-popover p-2 text-xs shadow-xl">
+                      <span className="font-semibold">{p.name}: </span>
+                      {formatCurrency(p.value)}/mo
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+          </PieChart>
         </div>
 
         <div className="w-full space-y-3">

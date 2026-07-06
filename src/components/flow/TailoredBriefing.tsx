@@ -127,32 +127,34 @@ export const TailoredBriefing = ({ profile, compact = false, className }: Tailor
 
   return (
     <div
-      className={['rounded-3xl border border-border bg-card/60 p-6 md:p-8', className ?? ''].join(' ')}
+      className={['rounded-3xl border border-border bg-card/60 p-5 md:p-6', className ?? ''].join(' ')}
     >
-      <div className="flex flex-col gap-5 border-b border-border/60 pb-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 border-b border-border/60 pb-4 md:flex-row md:items-center md:justify-between">
         {header}
         <div className="md:w-[320px]">{lensToggle}</div>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="grid gap-4">
+      {/* Blocks laid out 2x2 beside the proof panel so the whole briefing stays
+          within a single no-scroll frame in the full-picture console. */}
+      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid gap-3 sm:grid-cols-2">
           {blocks.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-2xl border border-border/60 bg-secondary/20 p-4">
+            <div key={title} className="rounded-2xl border border-border/60 bg-secondary/20 p-3.5">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Icon className="h-4 w-4" />
                 </span>
                 {title}
               </div>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{body}</p>
             </div>
           ))}
         </div>
-        <div className="md:sticky md:top-4 md:self-start">{proofPanel}</div>
+        <div>{proofPanel}</div>
       </div>
 
       {profile.match !== 'known' && (
-        <p className="mt-5 text-[11px] leading-snug text-muted-foreground">
+        <p className="mt-4 text-[11px] leading-snug text-muted-foreground">
           Tailored from open-web benchmarks for your vertical. Enter a specific
           brand domain for a sharper read, or book a conversation for an audit
           grounded in your live identity stack.

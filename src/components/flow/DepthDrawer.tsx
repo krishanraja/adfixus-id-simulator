@@ -13,14 +13,17 @@ interface DepthDrawerProps {
 
 /**
  * The progressive-depth surface. A quiet affordance elsewhere opens this panel,
- * which slides + scales in to reveal ALL the existing richness - full sliders,
- * domain portfolio, advanced panel, waterfall, ramp chart, breakdowns -
- * completely unchanged. Nothing is removed; it is simply hidden by default and
- * reachable in one click.
+ * which slides + scales in to reveal the full configurable picture - properties,
+ * monetisation, assumptions, the live result and every chart.
+ *
+ * It is a BOUNDED, no-scroll frame: locked to the dynamic viewport height with
+ * `overflow-hidden`, so the surface never grows the host page. A slim header bar
+ * sits at the top; its children fill the remaining space and organise themselves
+ * into a navigable, no-scroll console (see FullPicture).
  *
  * It renders in normal document flow (not `position: fixed`) so it contributes
- * to `#root` scrollHeight - which keeps the iframe-embed height reporting
- * correct when the full picture is open.
+ * to `#root` scrollHeight - which keeps the iframe-embed height reporting equal
+ * to one viewport when the full picture is open.
  */
 export const DepthDrawer = ({
   open,
@@ -67,7 +70,7 @@ export const DepthDrawer = ({
       {open && (
         <motion.div
           key="depth-drawer"
-          className="relative z-[60] min-h-dvh-safe origin-top bg-background"
+          className="relative z-[60] flex h-dvh-safe origin-top flex-col overflow-hidden bg-background"
           initial={initial}
           animate={animate}
           exit={exit}
@@ -75,9 +78,9 @@ export const DepthDrawer = ({
           aria-modal="true"
           aria-label={title}
         >
-          {/* Slim sticky top bar with a single close affordance */}
-          <div className="sticky top-0 z-10 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-            <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
+          {/* Slim header bar with a single close affordance */}
+          <div className="flex-none border-b border-border/50 bg-background/80 backdrop-blur-xl">
+            <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:px-6">
               <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
                 {title}
               </span>
@@ -91,7 +94,9 @@ export const DepthDrawer = ({
             </div>
           </div>
 
-          {children}
+          {/* The bounded stage: children own the remaining height and lay out
+              their own no-scroll navigation inside it. */}
+          <div className="min-h-0 flex-1">{children}</div>
         </motion.div>
       )}
     </AnimatePresence>

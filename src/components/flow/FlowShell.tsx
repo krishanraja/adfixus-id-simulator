@@ -1,6 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { ReactNode } from 'react';
-import { AdfixusLogo } from '@/components/brand/AdfixusLogo';
 import { stepVariants, reducedVariants } from './motion';
 
 interface FlowShellProps {
@@ -15,13 +14,12 @@ interface FlowShellProps {
 
 /**
  * The shared guided-flow shell: a full-viewport, centred, dark stage that shows
- * exactly one step at a time. A tiny fixed AdFixus wordmark sits top-left; slim
- * progress dots sit top-right. Step transitions are a gentle fade + 12px y +
- * slight scale on a spring (~0.4s), and collapse to a plain crossfade when the
- * visitor prefers reduced motion.
+ * exactly one step at a time. Slim progress dots sit top-right. Step transitions
+ * are a gentle fade + 12px y + slight scale on a spring (~0.4s), and collapse to
+ * a plain crossfade when the visitor prefers reduced motion.
  *
- * Identical structure/name across all three AdFixus tools - this is what makes
- * them feel like one product.
+ * No brand wordmark: this tool is embedded in an iframe on adfixus.com (or a
+ * customer site), where the host page already carries the branding.
  */
 export const FlowShell = ({ step, stepCount, onStepSelect, children }: FlowShellProps) => {
   const reduce = useReducedMotion();
@@ -29,17 +27,6 @@ export const FlowShell = ({ step, stepCount, onStepSelect, children }: FlowShell
 
   return (
     <div className="hero-gradient relative flex min-h-dvh-safe flex-col overflow-x-hidden bg-background text-foreground">
-      {/* Fixed wordmark, top-left */}
-      <a
-        href="https://www.adfixus.com"
-        target="_blank"
-        rel="noreferrer"
-        className="fixed left-5 top-5 z-50 transition-opacity hover:opacity-80 md:left-8 md:top-7"
-        aria-label="AdFixus"
-      >
-        <AdfixusLogo height={24} />
-      </a>
-
       {/* Slim progress dots, top-right */}
       {stepCount > 1 && (
         <div className="fixed right-5 top-6 z-50 flex items-center gap-2 md:right-8 md:top-8">

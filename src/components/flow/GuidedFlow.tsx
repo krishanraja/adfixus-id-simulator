@@ -3,7 +3,7 @@ import { useIdSimulator } from '@/hooks/useIdSimulator';
 import { formatCurrency, formatPercentage } from '@/utils/formatting';
 import { MEETING_BOOKING_URL } from '@/config';
 import { resolveDomainProfile, type DomainProfile } from '@/core/intel';
-import { IdSimulator } from '@/components/simulator/IdSimulator';
+import { FullPicture } from '@/components/simulator/FullPicture';
 import { FlowShell } from './FlowShell';
 import { Provocation } from './Provocation';
 import { DomainStep } from './DomainStep';
@@ -157,7 +157,7 @@ export const GuidedFlow = () => {
         onClose={() => setDrawerOpen(false)}
         title="The full picture · Customise"
       >
-        <IdSimulator simulator={simulator} profile={profile} embedded />
+        <FullPicture simulator={simulator} profile={profile} />
       </DepthDrawer>
     </>
   );

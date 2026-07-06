@@ -278,6 +278,30 @@
   min-height: 100dvh;
 }
 
+/* Fixed dynamic-viewport height (bounded) - used by the no-scroll full-picture
+   console so the surface locks to the frame and never grows the host page. */
+.h-dvh-safe {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Thin, unobtrusive scrollbar for the rare contained-overflow panel (e.g. the
+   advanced assumptions on a very short viewport). The host page never scrolls. */
+.scroll-contained {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+.scroll-contained::-webkit-scrollbar {
+  width: 8px;
+}
+.scroll-contained::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+}
+.scroll-contained::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* Card hover effect */
 .scanner-card {
   @apply transition-all duration-300;

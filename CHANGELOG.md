@@ -15,7 +15,44 @@ Durability Simulator lead magnet.
 
 ---
 
-## [4.0.0] - Real branding + domain intelligence (current)
+## [4.1.0] - No-scroll full-picture console (current)
+
+The tool is embedded in an iframe on another site, so the experience is now
+built to live entirely within one viewport - the visitor discovers and moves
+around everything without the page ever scrolling.
+
+### Changed
+- **No-scroll "full picture" console** (`src/components/simulator/FullPicture.tsx`,
+  new): the depth drawer's long scrolling page is replaced by a bounded, navigable
+  console. A persistent **result rail** (the live annual value, headline metrics
+  and both CTAs) stays on screen beside a **tabbed explore pane** - Configure,
+  Fine-tune, Breakdown, Ramp, and a tailored Briefing when a business is
+  recognised. Every input updates the rail live, so impact is always in view.
+  Fine-tune splits its 14 benchmark sliders into Economics / Readiness sub-tabs so
+  they stay no-scroll. The old scrolling `IdSimulator.tsx` remains as the
+  standalone full-page variant.
+- **`DepthDrawer`** is now a bounded frame: locked to the dynamic viewport height
+  with `overflow-hidden` (via the new `.h-dvh-safe` utility), so it reports exactly
+  one viewport to the parent iframe and never grows the host page.
+- **`TailoredBriefing`** full variant re-laid out as a 2×2 block grid beside the
+  proof panel, so the Briefing tab fits within the frame. The compact reveal
+  variant is unchanged.
+
+### Fixed
+- **Interacting with the full picture no longer jumps to the top of the page.**
+  `DepthDrawer`'s scroll-to-top effect depended on the inline `onClose` prop, whose
+  reference changed on every parent render (e.g. moving a slider), re-firing the
+  effect. Split into two effects so the scroll only runs on the open transition.
+- **Donut chart** in "Where the recovery lands" no longer collapses to a sliver:
+  removed the Recharts mount animation (which could stick at frame 0) and render it
+  at a deterministic fixed size. As a bonus it no longer re-animates on every live
+  input change.
+
+### Removed
+- **Top-left AdFixus wordmark** from the guided flow (`FlowShell`). The tool is
+  embedded where the host page already carries the branding.
+
+## [4.0.0] - Real branding + domain intelligence
 
 The audit now recognises the visitor's business from their domain and tailors
 everything around it - still 100% client-side, no backend of ours.
