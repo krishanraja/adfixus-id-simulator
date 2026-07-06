@@ -57,8 +57,8 @@ export const FlowShell = ({ step, stepCount, onStepSelect, children }: FlowShell
       )}
 
       {/* The stage: one step, centred */}
-      <main className="flex flex-1 items-center justify-center px-6 py-24 md:px-8">
-        <div className="w-full max-w-3xl">
+      <main className="flex flex-1 items-center justify-center px-6 py-10 md:px-8 md:py-14">
+        <div className="w-full max-w-5xl">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={step}

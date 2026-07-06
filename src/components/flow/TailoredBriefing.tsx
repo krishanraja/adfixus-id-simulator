@@ -93,23 +93,25 @@ export const TailoredBriefing = ({ profile, compact = false, className }: Tailor
   );
 
   if (compact) {
+    // A tight teaser for the reveal screen: identity gap + the stakeholder proof
+    // metric. The fuller narrative (context, cost, mapping) lives in the console's
+    // Briefing tab, so it is omitted here to keep the reveal within one viewport.
     return (
       <div
         className={[
-          'rounded-2xl border border-border bg-card/60 p-5 text-left backdrop-blur-sm',
+          'rounded-2xl border border-border bg-card/60 p-4 text-left backdrop-blur-sm',
           className ?? '',
         ].join(' ')}
       >
         {header}
-        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{archetype.context}</p>
-        <div className="mt-4 rounded-xl border border-border/60 bg-secondary/20 p-3">
+        <div className="mt-3 rounded-xl border border-border/60 bg-secondary/20 p-3">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary/80">
             <EyeOff className="h-3.5 w-3.5" /> Your identity gap
           </div>
           <p className="mt-1 text-sm leading-snug text-foreground/90">{profile.identityGap}</p>
         </div>
-        <div className="mt-4">{lensToggle}</div>
-        <div className="mt-4">{proofPanel}</div>
+        <div className="mt-3">{lensToggle}</div>
+        <div className="mt-3">{proofPanel}</div>
       </div>
     );
   }
@@ -127,19 +129,19 @@ export const TailoredBriefing = ({ profile, compact = false, className }: Tailor
 
   return (
     <div
-      className={['rounded-3xl border border-border bg-card/60 p-5 md:p-6', className ?? ''].join(' ')}
+      className={['rounded-3xl border border-border bg-card/60 p-4 md:p-5', className ?? ''].join(' ')}
     >
-      <div className="flex flex-col gap-4 border-b border-border/60 pb-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 border-b border-border/60 pb-3 md:flex-row md:items-center md:justify-between">
         {header}
         <div className="md:w-[320px]">{lensToggle}</div>
       </div>
 
       {/* Blocks laid out 2x2 beside the proof panel so the whole briefing stays
           within a single no-scroll frame in the full-picture console. */}
-      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="grid gap-3 sm:grid-cols-2">
           {blocks.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-2xl border border-border/60 bg-secondary/20 p-3.5">
+            <div key={title} className="rounded-2xl border border-border/60 bg-secondary/20 p-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Icon className="h-4 w-4" />

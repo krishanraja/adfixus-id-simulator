@@ -26,6 +26,7 @@ import { DisplayVideoBreakdown } from './results/DisplayVideoBreakdown';
 import { RampChart } from './results/RampChart';
 import { TailoredBriefing } from '@/components/flow/TailoredBriefing';
 import { DEFAULTS, type useIdSimulator } from '@/hooks/useIdSimulator';
+import type { UnifiedResults } from '@/core';
 import type { DomainProfile } from '@/core/intel';
 
 type Simulator = ReturnType<typeof useIdSimulator>;
@@ -46,18 +47,45 @@ type TabKey = 'configure' | 'finetune' | 'breakdown' | 'ramp' | 'briefing';
  * The no-scroll "full picture" console.
  *
  * Everything that used to live on one long scrolling page is reorganised into a
- * bounded, navigable surface: a persistent result rail (the live annual value,
- * headline metrics and the two calls-to-action) sits beside a tabbed explore
- * pane. The visitor moves between Configure, Fine-tune, Breakdown, Ramp (and a
- * tailored Briefing when we recognised their business) - discovering anything
- * they need without the page ever scrolling. Every input updates the rail live,
- * so impact is always in view.
+ * bounded, navigable surface that never scrolls the host page. On wide screens a
+ * persistent result rail (the live annual value, headline metrics and both
+ * calls-to-action) sits beside a tabbed explore pane; on narrow screens the rail
+ * collapses into a compact payoff bar above the same tabs. The visitor moves
+ * between Configure, Fine-tune, Breakdown, Ramp (and a tailored Briefing when we
+ * recognised their business) - discovering anything they need without the page
+ * ever scrolling. Every input updates the payoff live, so impact is always in
+ * view.
  */
 export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
   const { state, results, visibility, patch, patchReadiness, addDomain, updateDomain, removeDomain } =
     simulator;
   const reduce = useReducedMotion();
   const [tab, setTab] = useState<TabKey>('configure');
+
+  // The payoff is shared by the desktop rail and the mobile bar, so the animated
+  // count-up and PDF export live here and flow down to both.
+  const animatedAnnual = useAnimatedNumber(results.totals.totalAnnualUplift);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const handlePdf = async () => {
+    setPdfLoading(true);
+    try {
+      await downloadIdProposalPdf(results);
+    } catch (err) {
+      console.error('[ID PDF] generation failed', err);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const payoff = {
+    animated: animatedAnnual,
+    monthly: results.totals.totalMonthlyUplift,
+    threeYear: results.totals.threeYearProjection,
+    percentImprovement: results.totals.percentageImprovement,
+    recoveredPct: Math.round(visibility.recoveredShare * 100),
+    pdfLoading,
+    onPdf: handlePdf,
+  };
 
   const hasBriefing = Boolean(profile?.domain);
 
@@ -97,15 +125,18 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
 
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-4 p-4 md:p-6">
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:gap-6">
+      {/* Compact payoff bar - only on narrow screens (< lg), above the tabs. */}
+      <PayoffBar {...payoff} results={results} className="flex-none lg:hidden" />
+
+      <div className="grid min-h-0 min-w-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:gap-6">
         {/* ── Explore pane ─────────────────────────────────────────────── */}
-        <div className="order-2 flex min-h-0 flex-col lg:order-1">
+        <div className="flex min-h-0 min-w-0 flex-col">
           {/* Tab strip */}
           <div className="flex flex-none items-center justify-between gap-3">
             <div
               role="tablist"
               aria-label="Full picture sections"
-              className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-secondary/30 p-1"
+              className="scroll-contained flex flex-nowrap items-center gap-1.5 overflow-x-auto rounded-xl border border-border bg-secondary/30 p-1"
             >
               {tabs.map(({ key, label, icon: Icon }) => {
                 const active = key === tab;
@@ -116,13 +147,13 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
                     aria-selected={active}
                     onClick={() => setTab(key)}
                     className={[
-                      'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
+                      'inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
                       active
                         ? 'bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.3)]'
                         : 'text-muted-foreground hover:text-foreground',
                     ].join(' ')}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4 shrink-0" />
                     <span className="hidden sm:inline">{label}</span>
                   </button>
                 );
@@ -135,7 +166,7 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
                 className="inline-flex flex-none items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                Reset ({modifiedCount})
+                <span className="hidden sm:inline">Reset</span> ({modifiedCount})
               </button>
             )}
           </div>
@@ -190,30 +221,21 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
                   </div>
                 )}
 
-                {tab === 'briefing' && profile && (
-                  <TailoredBriefing profile={profile} />
-                )}
+                {tab === 'briefing' && profile && <TailoredBriefing profile={profile} />}
               </motion.div>
             </AnimatePresence>
           </div>
         </div>
 
-        {/* ── Persistent result rail ───────────────────────────────────── */}
-        <ResultRail
-          annual={results.totals.totalAnnualUplift}
-          monthly={results.totals.totalMonthlyUplift}
-          threeYear={results.totals.threeYearProjection}
-          percentImprovement={results.totals.percentageImprovement}
-          recoveredPct={Math.round(visibility.recoveredShare * 100)}
-          results={results}
-        />
+        {/* ── Persistent result rail (wide screens only) ───────────────── */}
+        <ResultRail {...payoff} results={results} className="hidden lg:flex" />
       </div>
     </div>
   );
 };
 
 /* ── The fine-tune panel: economics + readiness as compact sub-tabs so 14
-      benchmark sliders stay no-scroll. ─────────────────────────────────── */
+      benchmark sliders stay no-scroll on wide screens. ─────────────────── */
 type FineTunePanelProps = {
   state: Simulator['state'];
   patch: Simulator['patch'];
@@ -227,10 +249,10 @@ const FineTunePanel = ({ state, patch, patchReadiness }: FineTunePanelProps) => 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <p className="mr-auto text-sm text-muted-foreground">
+        <p className="mr-auto hidden text-sm text-muted-foreground sm:block">
           Every benchmark is yours to challenge - the result updates live.
         </p>
-        <div className="flex rounded-lg border border-border bg-secondary/30 p-0.5">
+        <div className="ml-auto flex rounded-lg border border-border bg-secondary/30 p-0.5 sm:ml-0">
           {(
             [
               { key: 'economics', label: 'Economics', icon: Radar },
@@ -257,7 +279,7 @@ const FineTunePanel = ({ state, patch, patchReadiness }: FineTunePanelProps) => 
       </div>
 
       {group === 'economics' ? (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <AssumptionSlider
             label="Safari / iOS traffic share"
             description="Portion of your audience on Safari or iOS"
@@ -332,7 +354,7 @@ const FineTunePanel = ({ state, patch, patchReadiness }: FineTunePanelProps) => 
           />
         </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <AssumptionSlider
             label="Sales readiness"
             description="Team trained to sell addressable inventory"
@@ -435,100 +457,157 @@ const FineTunePanel = ({ state, patch, patchReadiness }: FineTunePanelProps) => 
   );
 };
 
-/* ── The persistent result rail: the payoff, always on screen. ─────────── */
-type ResultRailProps = {
-  annual: number;
+/* ── Shared payoff props ────────────────────────────────────────────────── */
+type PayoffProps = {
+  animated: number;
   monthly: number;
   threeYear: number;
   percentImprovement: number;
   recoveredPct: number;
-  results: Simulator['results'];
+  pdfLoading: boolean;
+  onPdf: () => void;
+  results: UnifiedResults;
+  className?: string;
 };
 
+/* ── The persistent result rail: the payoff, always on screen (wide). ──── */
 const ResultRail = ({
-  annual,
+  animated,
   monthly,
   threeYear,
   percentImprovement,
   recoveredPct,
-  results,
-}: ResultRailProps) => {
-  const animated = useAnimatedNumber(annual);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  pdfLoading,
+  onPdf,
+  className = '',
+}: PayoffProps) => (
+  <aside
+    className={`hero-gradient flex min-h-0 flex-col rounded-2xl border border-primary/20 bg-card/40 p-5 backdrop-blur-sm lg:p-6 ${className}`}
+  >
+    <div className="text-[11px] font-medium uppercase tracking-widest text-primary">
+      What durable identity brings back
+    </div>
 
-  const handlePdf = async () => {
-    setPdfLoading(true);
-    try {
-      await downloadIdProposalPdf(results);
-    } catch (err) {
-      console.error('[ID PDF] generation failed', err);
-    } finally {
-      setPdfLoading(false);
-    }
-  };
+    <div className="mt-3 flex items-start">
+      <span className="text-4xl font-bold leading-none tracking-tight text-primary drop-shadow-[0_0_25px_hsl(var(--primary)/0.35)] tabular-nums xl:text-5xl">
+        {formatCurrency(animated)}
+      </span>
+      <span className="ml-1.5 mt-1 text-lg font-normal text-muted-foreground">/yr</span>
+    </div>
 
-  return (
-    <aside className="hero-gradient order-1 flex min-h-0 flex-col rounded-2xl border border-primary/20 bg-card/40 p-5 backdrop-blur-sm lg:order-2 lg:p-6">
-      <div className="text-[11px] font-medium uppercase tracking-widest text-primary">
-        What durable identity brings back
+    <div className="mt-3">
+      <span className="inline-flex rounded-full bg-revenue-gain/15 px-3 py-1 text-sm font-semibold text-revenue-gain">
+        +{percentImprovement.toFixed(1)}% ad revenue uplift
+      </span>
+    </div>
+
+    <dl className="mt-5 space-y-3 border-t border-border/50 pt-5 text-sm">
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-muted-foreground">Per month</dt>
+        <dd className="font-semibold tabular-nums">{formatCurrency(monthly)}</dd>
       </div>
-
-      <div className="mt-3 flex items-start">
-        <span className="text-4xl font-bold leading-none tracking-tight text-primary drop-shadow-[0_0_25px_hsl(var(--primary)/0.35)] tabular-nums xl:text-5xl">
-          {formatCurrency(animated)}
-        </span>
-        <span className="ml-1.5 mt-1 text-lg font-normal text-muted-foreground">/yr</span>
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-muted-foreground">Over 3 years</dt>
+        <dd className="font-semibold tabular-nums">{formatCurrency(threeYear)}</dd>
       </div>
-
-      <div className="mt-3">
-        <span className="inline-flex rounded-full bg-revenue-gain/15 px-3 py-1 text-sm font-semibold text-revenue-gain">
-          +{percentImprovement.toFixed(1)}% ad revenue uplift
-        </span>
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-muted-foreground">Dark audience recovered</dt>
+        <dd className="font-semibold tabular-nums text-primary">~{formatPercentage(recoveredPct, 0)}</dd>
       </div>
+    </dl>
 
-      <dl className="mt-5 space-y-3 border-t border-border/50 pt-5 text-sm">
-        <div className="flex items-center justify-between gap-3">
-          <dt className="text-muted-foreground">Per month</dt>
-          <dd className="font-semibold tabular-nums">{formatCurrency(monthly)}</dd>
+    <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+      A live model of the returning humans a durable, owned identity re-recognises
+      past the cookie window. Adjust anything on the left - this updates instantly.
+    </p>
+
+    <div className="mt-auto space-y-2.5 pt-5">
+      <CtaBook />
+      <CtaPdf loading={pdfLoading} onClick={onPdf} />
+    </div>
+  </aside>
+);
+
+/* ── The compact payoff bar: the same payoff, condensed (narrow). ──────── */
+const PayoffBar = ({
+  animated,
+  monthly,
+  threeYear,
+  percentImprovement,
+  recoveredPct,
+  pdfLoading,
+  onPdf,
+  className = '',
+}: PayoffProps) => (
+  <div
+    className={`hero-gradient rounded-2xl border border-primary/20 bg-card/40 p-4 backdrop-blur-sm ${className}`}
+  >
+    <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <div className="text-[10px] font-medium uppercase tracking-widest text-primary">
+          What durable identity brings back
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <dt className="text-muted-foreground">Over 3 years</dt>
-          <dd className="font-semibold tabular-nums">{formatCurrency(threeYear)}</dd>
+        <div className="mt-0.5 flex items-baseline gap-2">
+          <span className="text-3xl font-bold leading-none tracking-tight text-primary tabular-nums">
+            {formatCurrency(animated)}
+          </span>
+          <span className="text-sm text-muted-foreground">/yr</span>
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <dt className="text-muted-foreground">Dark audience recovered</dt>
-          <dd className="font-semibold tabular-nums text-primary">
-            ~{formatPercentage(recoveredPct, 0)}
-          </dd>
-        </div>
-      </dl>
-
-      <p className="mt-5 hidden text-xs leading-relaxed text-muted-foreground lg:block">
-        A live model of the returning humans a durable, owned identity
-        re-recognises past the cookie window. Adjust anything on the left - this
-        updates instantly.
-      </p>
-
-      <div className="mt-auto space-y-2.5 pt-5">
-        <a
-          href={MEETING_BOOKING_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[0_0_30px_hsl(var(--primary)/0.35)] transition-all hover:shadow-[0_0_45px_hsl(var(--primary)/0.55)] hover:brightness-110 active:scale-[0.98]"
-        >
-          <CalendarCheck className="h-4 w-4" />
-          Book a conversation
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-        </a>
-        <button
-          onClick={handlePdf}
-          disabled={pdfLoading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-secondary/40 px-5 py-3 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-60"
-        >
-          {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-          Take the summary with you
-        </button>
       </div>
-    </aside>
-  );
-};
+      <span className="shrink-0 rounded-full bg-revenue-gain/15 px-2.5 py-1 text-xs font-semibold text-revenue-gain">
+        +{percentImprovement.toFixed(1)}%
+      </span>
+    </div>
+
+    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground tabular-nums">
+      <span>{formatCurrency(monthly)}/mo</span>
+      <span>{formatCurrency(threeYear)} / 3yr</span>
+      <span className="text-primary">~{formatPercentage(recoveredPct, 0)} recovered</span>
+    </div>
+
+    <div className="mt-3 flex gap-2">
+      <CtaBook className="flex-1" compact />
+      <CtaPdf loading={pdfLoading} onClick={onPdf} className="flex-1" compact />
+    </div>
+  </div>
+);
+
+const CtaBook = ({ className = '', compact = false }: { className?: string; compact?: boolean }) => (
+  <a
+    href={MEETING_BOOKING_URL}
+    target="_blank"
+    rel="noreferrer"
+    className={`group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[0_0_30px_hsl(var(--primary)/0.35)] transition-all hover:shadow-[0_0_45px_hsl(var(--primary)/0.55)] hover:brightness-110 active:scale-[0.98] ${className}`}
+  >
+    <CalendarCheck className="h-4 w-4 shrink-0" />
+    {compact ? 'Book a call' : 'Book a conversation'}
+    {!compact && (
+      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+    )}
+  </a>
+);
+
+const CtaPdf = ({
+  loading,
+  onClick,
+  className = '',
+  compact = false,
+}: {
+  loading: boolean;
+  onClick: () => void;
+  className?: string;
+  compact?: boolean;
+}) => (
+  <button
+    onClick={onClick}
+    disabled={loading}
+    className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-border bg-secondary/40 px-5 py-3 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-60 ${className}`}
+  >
+    {loading ? (
+      <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+    ) : (
+      <Download className="h-4 w-4 shrink-0" />
+    )}
+    {compact ? 'Summary' : 'Take the summary with you'}
+  </button>
+);
