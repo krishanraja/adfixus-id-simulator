@@ -30,16 +30,24 @@ export const DepthDrawer = ({
 }: DepthDrawerProps) => {
   const reduce = useReducedMotion();
 
-  // On open, bring the panel into view from the top; allow Escape to close.
+  // On open, bring the panel into view from the top. This must depend ONLY on
+  // the open transition - not on `onClose`, whose reference changes on every
+  // parent render (e.g. adjusting a slider inside the drawer). Including it here
+  // would re-run this effect on every interaction and yank the page to the top.
   useEffect(() => {
     if (!open) return;
     window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  }, [open, reduce]);
+
+  // Allow Escape to close while the drawer is open.
+  useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose, reduce]);
+  }, [open, onClose]);
 
   const initial = reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.98 };
   const animate = reduce
