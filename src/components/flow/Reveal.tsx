@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, CalendarCheck } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Maximize2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import { settleVariants, reducedVariants } from './motion';
@@ -52,14 +52,14 @@ export const Reveal = ({
   const withPanel = Boolean(panel);
 
   const eyebrowEl = eyebrow && (
-    <motion.div
+    <motion.p
       variants={variants}
       initial="initial"
       animate="animate"
-      className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium uppercase tracking-widest text-primary"
+      className="mb-4 block text-balance text-xs font-semibold uppercase tracking-[0.2em] text-primary/90"
     >
       {eyebrow}
-    </motion.div>
+    </motion.p>
   );
 
   const numberEl = (
@@ -107,7 +107,7 @@ export const Reveal = ({
       initial="initial"
       animate="animate"
       transition={reduce ? undefined : { delay: 0.28 }}
-      className={`flex flex-col gap-4 ${withPanel ? 'mt-8 items-center lg:items-start' : 'mt-11 items-center'}`}
+      className={`flex flex-col gap-4 ${withPanel ? 'mt-8 items-center lg:mt-auto lg:items-start' : 'mt-11 items-center'}`}
     >
       <a
         href={ctaHref}
@@ -123,8 +123,9 @@ export const Reveal = ({
       {secondaryLabel && onSecondary && (
         <button
           onClick={onSecondary}
-          className="text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
         >
+          <Maximize2 className="h-4 w-4" />
           {secondaryLabel}
         </button>
       )}
@@ -142,9 +143,9 @@ export const Reveal = ({
 
   if (withPanel) {
     return (
-      <div className="relative mx-auto grid max-w-5xl items-center gap-8 text-center lg:grid-cols-2 lg:gap-12 lg:text-left">
+      <div className="relative mx-auto grid max-w-5xl items-stretch gap-8 text-center lg:grid-cols-2 lg:gap-8 lg:text-left">
         {glow}
-        <div>
+        <div className="flex flex-col lg:rounded-2xl lg:border lg:border-border lg:bg-card/60 lg:p-6 lg:backdrop-blur-sm">
           {eyebrowEl}
           {numberEl}
           {meaningEl}
@@ -157,7 +158,7 @@ export const Reveal = ({
           initial="initial"
           animate="animate"
           transition={reduce ? undefined : { delay: 0.24 }}
-          className="mx-auto hidden w-full max-w-md lg:mx-0 lg:block"
+          className="mx-auto hidden w-full lg:mx-0 lg:block"
         >
           {panel}
         </motion.div>

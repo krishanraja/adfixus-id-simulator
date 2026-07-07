@@ -122,9 +122,14 @@ export const GuidedFlow = () => {
           {step === 3 && (
             <Reveal
               eyebrow={
-                recognised
-                  ? `What a durable, owned identity brings back for ${profile.company}`
-                  : 'What a durable, owned identity brings back into view'
+                recognised ? (
+                  <>
+                    What a durable, owned identity brings back{' '}
+                    <span className="whitespace-nowrap">for {profile.company}</span>
+                  </>
+                ) : (
+                  'What a durable, owned identity brings back into view'
+                )
               }
               value={annual}
               format={formatCurrency}
@@ -140,12 +145,10 @@ export const GuidedFlow = () => {
                   durable identity takes hold.
                 </>
               }
-              panel={recognised ? <TailoredBriefing profile={profile} compact /> : undefined}
+              panel={recognised ? <TailoredBriefing profile={profile} compact className="lg:h-full" /> : undefined}
               ctaLabel="Book a conversation"
               ctaHref={MEETING_BOOKING_URL}
-              secondaryLabel={
-                recognised ? 'See the full picture & briefing / Customise' : 'See the full picture / Customise'
-              }
+              secondaryLabel="See the full picture"
               onSecondary={openDepth}
             />
           )}

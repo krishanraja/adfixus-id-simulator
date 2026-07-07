@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
@@ -61,6 +61,14 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
     simulator;
   const reduce = useReducedMotion();
   const [tab, setTab] = useState<TabKey>('configure');
+
+  // On a short viewport a tall tab (e.g. Readiness) can overflow; the console
+  // scrolls within this bounded wrapper (the host page never scrolls). Reset it
+  // to the top when switching tabs so a prior scroll position isn't inherited.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [tab]);
 
   // The payoff is shared by the desktop rail and the mobile bar, so the animated
   // count-up and PDF export live here and flow down to both.
@@ -126,9 +134,13 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
       {/* Compact payoff bar - only on narrow screens (< lg), above the tabs. */}
       <PayoffBar {...payoff} results={results} className="flex-none lg:hidden" />
 
-      <div className="grid min-h-0 min-w-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:gap-6">
+      {/* Bounded scroll region: content is top-anchored and content-height, so
+          the grid row (and the rail) match the tallest column per tab. A tab
+          taller than the frame scrolls here; the host page never scrolls. */}
+      <div ref={scrollRef} className="scroll-contained min-h-0 flex-1 overflow-y-auto">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:gap-6">
         {/* ── Explore pane ─────────────────────────────────────────────── */}
-        <div className="flex min-h-0 min-w-0 flex-col">
+        <div className="flex min-w-0 flex-col">
           {/* Tab strip */}
           <div className="flex flex-none items-center justify-between gap-3">
             <div
@@ -169,8 +181,8 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
             )}
           </div>
 
-          {/* Active panel */}
-          <div className="scroll-contained mt-4 min-h-0 flex-1 overflow-y-auto pr-0.5">
+          {/* Active panel (content-height; the outer wrapper owns any scroll) */}
+          <div className="mt-4">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={tab}
@@ -178,7 +190,6 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
                 transition={{ duration: 0.18 }}
-                className="h-full"
               >
                 {tab === 'configure' && (
                   <div className="grid gap-4 lg:grid-cols-2">
@@ -227,6 +238,7 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
 
         {/* ── Persistent result rail (wide screens only) ───────────────── */}
         <ResultRail {...payoff} results={results} className="hidden lg:flex" />
+      </div>
       </div>
     </div>
   );
@@ -468,7 +480,7 @@ const ResultRail = ({
   className = '',
 }: PayoffProps) => (
   <aside
-    className={`hero-gradient flex min-h-0 flex-col rounded-2xl border border-primary/20 bg-card/40 p-5 backdrop-blur-sm lg:p-6 ${className}`}
+    className={`hero-gradient flex flex-col rounded-2xl border border-primary/20 bg-card/40 p-5 backdrop-blur-sm lg:p-6 ${className}`}
   >
     <div className="text-[11px] font-medium uppercase tracking-widest text-primary">
       What durable identity brings back
