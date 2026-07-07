@@ -16,6 +16,7 @@ import {
   UnifiedCalculationEngine,
   ADDRESSABILITY_BENCHMARKS,
   OPERATIONAL_BENCHMARKS,
+  RISK_SCENARIOS,
   singleDomain,
   type CoreDomain,
   type AssumptionOverrides,
@@ -52,8 +53,9 @@ export interface IdSimulatorState {
   // NOT here: it is a property of each domain's traffic (DomainDraft.safariShare)
   // and the engine consumes the pageview-weighted value, so there is one source
   // of truth for it - the per-property control - rather than a duplicate global.
-  baselineAddressability: number; // 0-1, current total addressable inventory
-  targetSafariAddressability: number; // 0-1, recovered Safari addressability
+  // "Addressable today" is likewise derived from the Apple share (1 - AppleShare),
+  // not stored, so the picture stays internally consistent.
+  targetSafariAddressability: number; // 0-1, recovered fraction of the Apple slice
   cpmUpliftFactor: number; // 0-1, CPM boost on newly addressable inventory
   contextualCpmRatio: number; // 0-1, contextual CPM as a share of addressable CPM
   cdpMonthlySavings: number; // $/month CDP/data-platform saving
@@ -75,8 +77,7 @@ export const DEFAULTS = {
   videoCPM: 12.0,
   risk: 'moderate' as RiskScenario,
   safariShare: ADDRESSABILITY_BENCHMARKS.SAFARI_SHARE, // 0.35
-  baselineAddressability: ADDRESSABILITY_BENCHMARKS.BASELINE_TOTAL_ADDRESSABILITY, // 0.65
-  targetSafariAddressability: ADDRESSABILITY_BENCHMARKS.TARGET_SAFARI_ADDRESSABILITY, // 0.35
+  targetSafariAddressability: ADDRESSABILITY_BENCHMARKS.TARGET_SAFARI_ADDRESSABILITY, // 0.35 (engine default; the UI seeds from the Balanced opportunity preset)
   cpmUpliftFactor: ADDRESSABILITY_BENCHMARKS.CPM_IMPROVEMENT_FACTOR, // 0.25
   contextualCpmRatio: ADDRESSABILITY_BENCHMARKS.CONTEXTUAL_CPM_RATIO, // 0.72
   cdpMonthlySavings: OPERATIONAL_BENCHMARKS.CDP_MONTHLY_SAVINGS, // 3500
@@ -112,9 +113,9 @@ const initialState = (): IdSimulatorState => ({
   risk: DEFAULTS.risk,
   opportunityScenario: 'balanced',
   rolloutScenario: 'backed',
-  baselineAddressability: DEFAULTS.baselineAddressability,
-  targetSafariAddressability: DEFAULTS.targetSafariAddressability,
-  cpmUpliftFactor: DEFAULTS.cpmUpliftFactor,
+  // First paint = the Balanced opportunity preset, so the golden reflects it.
+  targetSafariAddressability: OPPORTUNITY_PRESETS.balanced.targetSafariAddressability,
+  cpmUpliftFactor: OPPORTUNITY_PRESETS.balanced.cpmUpliftFactor,
   contextualCpmRatio: DEFAULTS.contextualCpmRatio,
   cdpMonthlySavings: DEFAULTS.cdpMonthlySavings,
   readiness: {},
@@ -145,6 +146,16 @@ export interface AudienceVisibility {
   recoveredShare: number; // 0-1 (of total audience)
   /** Share still invisible even after recovery. */
   stillInvisibleShare: number; // 0-1
+  /** Total share addressable WITH AdFixus - the capability headline (~0.95). */
+  addressableWithAdfixus: number; // 0-1
+  /** Newly-addressable impressions per month (the recovered slice, physical count). */
+  newlyAddressableImpressions: number;
+  /** Fraction of the recovery value realised at the chosen rollout (risk × adoption). */
+  realizedFraction: number; // 0-1
+  /** Full-potential monthly recovery revenue, before the rollout realisation haircut. */
+  grossRecovery: number; // $/mo
+  /** Monthly recovery revenue realised at the chosen rollout (= the payoff's addressability portion). */
+  realizedRecovery: number; // $/mo
 }
 
 export function deriveAudienceVisibility(
@@ -164,6 +175,16 @@ export function deriveAudienceVisibility(
   const invisibleShare = Math.max(0, 1 - visibleShare);
   const stillInvisibleShare = Math.max(0, 1 - improvedShare);
 
+  // Capability vs realisation: addressability is the recognition the durable ID
+  // unlocks (un-discounted); the dollars are what the chosen rollout captures in
+  // year one. realizedFraction is exactly the risk backbone the engine applies to
+  // addressability revenue (readiness is always empty now, so this is exact).
+  const risk = results.riskScenario ? RISK_SCENARIOS[results.riskScenario] : RISK_SCENARIOS.moderate;
+  const realizedFraction =
+    risk.addressabilityEfficiency * risk.cpmUpliftRealization * risk.adoptionRate;
+  const realizedRecovery = Math.max(0, d.addressabilityRevenue ?? 0);
+  const grossRecovery = realizedFraction > 0 ? realizedRecovery / realizedFraction : realizedRecovery;
+
   return {
     monthlyPageviews,
     safariShare,
@@ -171,6 +192,11 @@ export function deriveAudienceVisibility(
     visibleShare,
     recoveredShare,
     stillInvisibleShare,
+    addressableWithAdfixus: improvedShare,
+    newlyAddressableImpressions: Math.max(0, d.newlyAddressableImpressions ?? 0),
+    realizedFraction,
+    grossRecovery,
+    realizedRecovery,
   };
 }
 
@@ -183,11 +209,20 @@ export function computeResults(state: IdSimulatorState): UnifiedResults {
   // making the per-property "Safari / iOS share" control the single source of
   // truth that genuinely moves the ROI (single domain = that domain's value).
   const safariTotalPv = state.domains.reduce((s, d) => s + d.monthlyPageviews, 0);
-  ADDRESSABILITY_BENCHMARKS.SAFARI_SHARE =
+  const weightedAppleShare =
     safariTotalPv > 0
       ? state.domains.reduce((s, d) => s + d.safariShare * d.monthlyPageviews, 0) / safariTotalPv
       : state.domains[0]?.safariShare ?? DEFAULTS.safariShare;
-  ADDRESSABILITY_BENCHMARKS.BASELINE_TOTAL_ADDRESSABILITY = state.baselineAddressability;
+  ADDRESSABILITY_BENCHMARKS.SAFARI_SHARE = weightedAppleShare;
+  // "Addressable today" is the non-Apple audience you still recognise once cookies
+  // expire - the engine treats non-Apple (Chrome/other) inventory as ~fully
+  // addressable, so the addressable-today baseline IS 1 - the dark Apple slice.
+  // Deriving it from the Apple share (rather than a fixed 0.65) keeps the picture
+  // internally consistent - "addressable with AdFixus" can never exceed 100% - and
+  // makes the one Apple-share control move BOTH endpoints truthfully. It does not
+  // change the dollars: the revenue path reads only the recovered slice, never the
+  // baseline.
+  ADDRESSABILITY_BENCHMARKS.BASELINE_TOTAL_ADDRESSABILITY = 1 - weightedAppleShare;
   ADDRESSABILITY_BENCHMARKS.CONTEXTUAL_CPM_RATIO = state.contextualCpmRatio;
   OPERATIONAL_BENCHMARKS.CDP_MONTHLY_SAVINGS = state.cdpMonthlySavings;
 

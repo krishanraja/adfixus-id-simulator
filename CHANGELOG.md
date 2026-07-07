@@ -16,7 +16,53 @@ Durability Simulator lead magnet.
 
 ---
 
-## [4.4.0] - Ruthless simplification: ask only what a publisher knows (current)
+## [4.5.0] - Addressability reframe: 65% → ~95%, tied to ROI (current)
+
+The Breakdown both looked wrong and undersold AdFixus: it asserted a hardcoded
+"Safari addressability today: 0%", capped recovery at 45%, and showed a raw
+addressability picture next to a silently risk-discounted dollar — so the two
+seemed inconsistent. The real story is that a durable, owned ID makes the dark
+Apple/Safari audience addressable, lifting **total** addressability from ~65% to
+~95%, and the dollars follow from exactly that.
+
+### Changed
+- **The story is now total addressability.** "Addressable today" is the non-Apple
+  audience you still recognise once cookies expire, so it is derived from the Apple
+  share (`BASELINE_TOTAL_ADDRESSABILITY = 1 − AppleShare`, a per-render override in
+  `useIdSimulator`). "With AdFixus" = `1 − AppleShare×(1 − recovery)` — **always
+  ≤ 100%** (self-clamping), and the Apple slider now moves both endpoints truthfully.
+  This is display-only: **the dollar totals are unchanged by it** (revenue reads only
+  the recovered slice).
+- **Recovery recalibrated to near-full.** `OPPORTUNITY_PRESETS.targetSafariAddressability`
+  → `0.70 / 0.85 / 0.95` (Cautious / Balanced / Ambitious) → total addressability
+  ~89 / 95 / 98% at the default 35% Apple share.
+- **Bulletproof picture ↔ $.** The Breakdown adds a traceability strip — recovered
+  slice → newly-addressable impressions → full-potential $ → realised-at-your-rollout
+  $ — so "higher addressability → higher ROI" is legible, with the rollout discount
+  shown, not hidden. Addressability is the capability; the dollars are what the rollout
+  realises in year one. `deriveAudienceVisibility` now returns `addressableWithAdfixus`,
+  `grossRecovery`, `realizedRecovery`, `realizedFraction`, `newlyAddressableImpressions`.
+- **Rail** leads with **"Now addressable ~95%"** instead of "Dark audience recovered ~X%".
+
+### Removed
+- The dangerous **"Safari addressability today: 0%"** and capped "Safari with durable
+  ID" stat cards (Breakdown) and the equivalent PDF row. No absolute Safari-zero claim
+  anywhere. Dropped the now-unused `baselineAddressability` state field.
+
+### Golden re-baselines (intended)
+Balanced · Backed (5M pv, 3.2 ads, 35% Apple, moderate) →
+**`$9,679/mo · $116,143/yr`**, total addressability **65% → 94.75%** (was
+`$5,298/mo · 77.3%`). Full-potential recovery ≈ $15,137/mo, realised at Backed
+(≈ 0.492) ≈ $7,447/mo, + CDP ≈ $2,231 = $9,679.
+
+### Verified
+- Golden + both ladders confirmed against the engine (numeric harness): opportunity
+  `$7,207 / $9,679 / $12,125` (89.5 / 94.75 / 98.25%); rollout `$7,192 / $9,679 /
+  $11,493` (addressability holds at 94.75% — capability vs realisation). Apple-share
+  sweep 10→70%: "today" falls, "with AdFixus" never reaches 100%. Traceability strip's
+  realised $ + CDP = the rail total. `tsc` / `lint` / `build` clean.
+
+## [4.4.0] - Ruthless simplification: ask only what a publisher knows
 
 The console still asked questions a Head of Revenue can't answer and that
 overlapped each other ("Share matched to a known user today", "What an unmatched

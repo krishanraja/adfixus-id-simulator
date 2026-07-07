@@ -99,8 +99,9 @@ shows a read-only "what we assumed" line built from the preset numbers
 (`opportunityAssumption` / `rolloutAssumption`), so the copy can't drift from the math:
 
 - *How far to push* (`OPPORTUNITY_PRESETS`, Cautious / Balanced / Ambitious) sets
-  `targetSafariAddressability` + `cpmUpliftFactor` — the two upside assumptions only
-  AdFixus can benchmark. **Balanced = the engine defaults**, so first paint is golden.
+  `targetSafariAddressability` (the recovered fraction of the Apple slice: 0.70 / 0.85
+  / 0.95) + `cpmUpliftFactor` — the two upside assumptions only AdFixus can benchmark.
+  First paint seeds the **Balanced** preset (0.85), which is the golden baseline.
 - *How to roll out* (`ROLLOUT_PRESETS`, Lean / Backed / Strategic) selects the `risk`
   backbone (`conservative / moderate / optimistic`) and **clears `readinessFactors`
   to `{}`** — the estimate is the pure backbone. `NEUTRAL_READINESS` documents the
@@ -120,21 +121,33 @@ completeness.
 ### 2.1 ID Infrastructure (this tool)
 - Impressions = `pageviews × adsPerPage`; split display/video by `displayVideoSplit`.
 - Current revenue = `(displayImpr/1000)×displayCPM + (videoImpr/1000)×videoCPM`.
-- **Safari addressability recovery:** newly-addressable Safari impressions =
-  `impressions × SAFARI_SHARE(0.35) × safariAddressabilityImprovement`
-  where improvement = `targetSafariAddressability(default 0.35) − 0`.
+- **Apple/Safari addressability recovery:** newly-addressable Apple impressions =
+  `impressions × AppleShare(default 0.35) × recovery`, where
+  `recovery = targetSafariAddressability` (Balanced 0.85; the recovered fraction of the
+  dark Apple slice — near-full because a durable, owned ID re-recognises returning
+  Apple/Safari users past the 7-day ITP window).
 - **CPM uplift is a delta, not the full CPM.** Newly-addressable Safari inventory
   today earns *contextual* CPM (`CONTEXTUAL_CPM_RATIO = 0.72` of addressable). The
   uplift is `addressableCPM − contextualCPM` where
   `addressableCPM = CPM × (1 + CPM_IMPROVEMENT_FACTOR 0.25)`.
 - **CDP savings:** fixed `CDP_MONTHLY_SAVINGS = $3,500/mo` (configurable).
-- Total addressability moves from `BASELINE_TOTAL_ADDRESSABILITY = 65%` to
-  `65% + SAFARI_SHARE×improvement` (≈72-77%).
-
-The guided flow narrates this as an **audience-visibility story** (how much of the
-audience is invisible today, how much a durable ID recovers). Those figures are
-derived from the same engine result in `deriveAudienceVisibility()`, they are a
-retelling of the model's addressability numbers, not new inputs.
+- **Total addressability = the story.** "Addressable today" is the non-Apple audience
+  you still recognise once cookies expire, so the tool sets
+  `BASELINE_TOTAL_ADDRESSABILITY = 1 − AppleShare` (per-render override in
+  `useIdSimulator`, reproducing 65% at the default 35% Apple share). "With AdFixus" =
+  `1 − AppleShare×(1 − recovery)`, which is **always ≤ 100%** (self-clamping) and rises
+  to ~89 / 95 / 98% at the Cautious / Balanced / Ambitious recovery levels. The Apple
+  slider moves both endpoints. The revenue path reads only the recovered slice
+  (`AppleShare × recovery`), never the baseline, so this display reframe leaves the
+  dollars unchanged.
+- **Capability vs realisation.** The addressability % is the recognition *capability*
+  (un-discounted); the dollars are that capability's revenue *realised at the chosen
+  rollout* (`addressabilityEfficiency × cpmUpliftRealization × adoptionRate` ≈ 0.49 at
+  moderate). Opportunity sets the ceiling; rollout sets realisation.
+  `deriveAudienceVisibility()` exposes both (`addressableWithAdfixus`, plus
+  `grossRecovery` / `realizedRecovery` / `realizedFraction`) so the Breakdown can show
+  the recovered slice → impressions → full-potential $ → realised $ as one legible
+  chain — no bald "Safari is 0% addressable today" absolute anywhere.
 
 ### 2.2 CAPI Capabilities (`id-capi`+, engine-internal)
 - Match rate improves `BASELINE_MATCH_RATE 30% → IMPROVED_MATCH_RATE 75%`.
@@ -164,23 +177,26 @@ curve — it never changes the annual total.
 
 ### 2.5 Golden values (regression guard)
 For inputs `{5,000,000 pageviews, $4.50 display / $12 video CPM, 3.2 ads/page,
-80% display, 35% Safari}`, moderate risk, `scope: 'id-only'` — i.e. the console's
-default **Balanced · Backed** scenario with no readiness overrides:
+80% display, 35% Apple share}`, moderate risk, `scope: 'id-only'` — i.e. the
+console's default **Balanced · Backed** scenario (recovery 0.85) with no readiness
+overrides:
 
 | Metric | Value |
 |--------|-------|
 | Current monthly revenue | **$96,000** |
-| ID-only monthly uplift | **$5,298** |
-| Improved addressability | **77.3%** |
+| ID-only monthly uplift | **$9,679** |
+| Total addressability (today → with AdFixus) | **65% → 94.75%** |
 | CDP monthly savings (raw / displayed) | **$3,500** |
 
-The CDP figure is the raw saving the "Monthly spend on your data platform / CDP"
-fact displays; its *realized* contribution to uplift is risk-adjusted by
-`cdpSavingsRealization` (≈ $2,231 at moderate). The two scenario pickers are
-strictly monotonic on the monthly uplift: opportunity **$3,653 / $5,298 / $6,918**
-(Cautious / Balanced / Ambitious), rollout **$4,054 / $5,298 / $6,218**
-(Lean / Backed / Strategic). If you touch `benchmarks.ts`, `riskScenarios.ts`, or
-`scenarioPresets.ts`, re-check these before shipping.
+Recovery revenue is a *capability realised at the rollout*: full-potential recovery
+≈ **$15,137/mo**, realised at Backed (`addressabilityEfficiency × cpmUpliftRealization
+× adoptionRate` ≈ 0.492) ≈ **$7,447/mo**; plus CDP (realised ≈ $2,231) = **$9,679/mo**.
+The two scenario pickers are strictly monotonic on the monthly uplift: opportunity
+**$7,207 / $9,679 / $12,125** (Cautious / Balanced / Ambitious; total addressability
+89.5 / 94.75 / 98.25%), rollout **$7,192 / $9,679 / $11,493** (Lean / Backed /
+Strategic; addressability holds at 94.75% — capability vs realisation). If you touch
+`benchmarks.ts`, `riskScenarios.ts`, or `scenarioPresets.ts`, re-check these before
+shipping.
 
 ---
 

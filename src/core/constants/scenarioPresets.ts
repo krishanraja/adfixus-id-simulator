@@ -16,15 +16,23 @@ import type { RiskScenario } from './riskScenarios';
 export type OpportunityKey = 'cautious' | 'balanced' | 'ambitious';
 export type RolloutKey = 'lean' | 'backed' | 'strategic';
 
-/** Sets the two upside assumptions the publisher can't know. Balanced = the
- *  engine's own defaults, so first paint reproduces the golden values. */
+/**
+ * Sets the two upside assumptions the publisher can't know: how much of their
+ * dark Apple/Safari audience a durable ID recovers, and the CPM premium it earns.
+ *
+ * `targetSafariAddressability` is the recovered fraction of the Apple slice. A
+ * durable, owned ID re-recognises returning Apple/Safari users past the 7-day ITP
+ * window, so recovery is near-complete; the levels express how much of that we
+ * claim. At the default ~35% Apple share these lift TOTAL addressability from ~65%
+ * to ~89% / ~95% / ~98% (see the Breakdown), which is the real AdFixus story.
+ */
 export const OPPORTUNITY_PRESETS: Record<
   OpportunityKey,
   { targetSafariAddressability: number; cpmUpliftFactor: number }
 > = {
-  cautious: { targetSafariAddressability: 0.2, cpmUpliftFactor: 0.15 },
-  balanced: { targetSafariAddressability: 0.35, cpmUpliftFactor: 0.25 },
-  ambitious: { targetSafariAddressability: 0.45, cpmUpliftFactor: 0.35 },
+  cautious: { targetSafariAddressability: 0.7, cpmUpliftFactor: 0.15 },
+  balanced: { targetSafariAddressability: 0.85, cpmUpliftFactor: 0.25 },
+  ambitious: { targetSafariAddressability: 0.95, cpmUpliftFactor: 0.35 },
 };
 
 export const OPPORTUNITY_META: Record<OpportunityKey, { label: string; blurb: string }> = {

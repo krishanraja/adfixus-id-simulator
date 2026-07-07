@@ -75,21 +75,27 @@ benchmark default (often seeded per vertical) or a pre-defined scenario. Its tab
   and property names hide behind an optional "Run more than one site?" reveal.
   `BasicInputs` = **"What your ads earn"**: average display/video CPM. Ad density
   and the display/video split are **inferred** (vertical seed / default), not asked;
-  `baselineAddressability`, `contextualCpmRatio` and `cdpMonthlySavings` stay at
-  their benchmark defaults and are no longer surfaced as questions.
+  `contextualCpmRatio` and `cdpMonthlySavings` stay at their benchmark defaults and
+  are no longer surfaced as questions; "addressable today" is derived from the Apple
+  share (`1 − AppleShare`), so there is no `baselineAddressability` input either.
 - **Scenario** - two plain pickers, each with a read-only "what we assumed" line
   (derived from the preset numbers via `opportunityAssumption` / `rolloutAssumption`
   in `scenarioPresets.ts` - no raw dials):
   - *How far do you want to push?* (**Cautious / Balanced / Ambitious** →
-    `setOpportunity`) sets the two upside assumptions only AdFixus can benchmark
-    (`targetSafariAddressability`, `cpmUpliftFactor`).
+    `setOpportunity`) sets the two upside assumptions only AdFixus can benchmark:
+    `targetSafariAddressability` (the recovered fraction of the Apple slice: 0.70 /
+    0.85 / 0.95) and `cpmUpliftFactor`.
   - *How will you roll it out?* (**Lean / Backed / Strategic** → `setRollout`) picks
     the realisation backbone: it sets `risk` and clears `readiness` to `{}`.
 
   Presets live in `src/core/constants/scenarioPresets.ts` (tool-local product
   data, deliberately **not** in the shared engine). First paint is Balanced ·
-  Backed, which reproduces the golden values bit-exact.
-- **Breakdown** - `AddressabilityWaterfall` + `DisplayVideoBreakdown`.
+  Backed → the golden `$9,679/mo · 65% → 94.75%`.
+- **Breakdown** - `AddressabilityWaterfall` tells the total-addressability story
+  (today `1 − AppleShare` → with AdFixus, the recovered Apple slice) and a
+  traceability strip walking recovered slice → impressions → full-potential $ →
+  realised-at-rollout $ (capability vs realisation; from `deriveAudienceVisibility`).
+  Plus `DisplayVideoBreakdown`. No "Safari today 0%" absolute anywhere.
 - **Ramp** - `RampChart` (the first 12 months; ramp length follows the rollout's
   backbone: Lean 12 / Backed 9 / Strategic 6).
 - **Briefing** - the full `TailoredBriefing`, only when a domain was recognised.

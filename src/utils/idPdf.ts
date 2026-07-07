@@ -86,9 +86,8 @@ const buildDoc = (results: UnifiedResults): any => {
           widths: ['*', 'auto', 'auto'],
           body: [
             [th('Metric'), th('Today'), th('With AdFixus')],
-            ['Safari / iOS traffic share', formatPercentage(d.safariShare, 0), formatPercentage(d.safariShare, 0)],
-            ['Safari addressability', formatPercentage(d.currentSafariAddressability, 0), formatPercentage(d.targetSafariAddressability, 0)],
-            ['Total inventory addressable', formatPercentage(d.currentAddressability, 0), formatPercentage(d.improvedAddressability, 0)],
+            ['Audience you can recognise', formatPercentage(d.currentAddressability, 0), formatPercentage(d.improvedAddressability, 0)],
+            ['Apple / Safari audience recovered', '-', `+${formatPercentage(d.totalAddressabilityImprovement, 0)}`],
             ['Newly addressable impressions / mo', '-', formatNumber(d.newlyAddressableImpressions)],
           ],
         },

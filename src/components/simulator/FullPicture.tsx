@@ -104,10 +104,14 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
     monthly: results.totals.totalMonthlyUplift,
     threeYear: results.totals.threeYearProjection,
     percentImprovement: results.totals.percentageImprovement,
-    recoveredPct: Math.round(visibility.recoveredShare * 100),
+    addressablePct: Math.round(visibility.addressableWithAdfixus * 100),
     pdfLoading,
     onPdf: handlePdf,
   };
+
+  // Short, capitalised rollout name for the Breakdown's realised-value line.
+  const rolloutName =
+    state.rolloutScenario.charAt(0).toUpperCase() + state.rolloutScenario.slice(1);
 
   const hasBriefing = Boolean(profile?.domain);
 
@@ -227,7 +231,11 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
 
                 {tab === 'breakdown' && (
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <AddressabilityWaterfall results={results} />
+                    <AddressabilityWaterfall
+                      results={results}
+                      visibility={visibility}
+                      rolloutName={rolloutName}
+                    />
                     <DisplayVideoBreakdown results={results} state={state} />
                   </div>
                 )}
@@ -388,7 +396,7 @@ type PayoffProps = {
   monthly: number;
   threeYear: number;
   percentImprovement: number;
-  recoveredPct: number;
+  addressablePct: number;
   pdfLoading: boolean;
   onPdf: () => void;
   results: UnifiedResults;
@@ -401,7 +409,7 @@ const ResultRail = ({
   monthly,
   threeYear,
   percentImprovement,
-  recoveredPct,
+  addressablePct,
   pdfLoading,
   onPdf,
   className = '',
@@ -436,8 +444,8 @@ const ResultRail = ({
         <dd className="font-semibold tabular-nums">{formatCurrency(threeYear)}</dd>
       </div>
       <div className="flex items-center justify-between gap-3">
-        <dt className="text-muted-foreground">Dark audience recovered</dt>
-        <dd className="font-semibold tabular-nums text-primary">~{formatPercentage(recoveredPct, 0)}</dd>
+        <dt className="text-muted-foreground">Now addressable</dt>
+        <dd className="font-semibold tabular-nums text-primary">~{formatPercentage(addressablePct, 0)}</dd>
       </div>
     </dl>
 
@@ -459,7 +467,7 @@ const PayoffBar = ({
   monthly,
   threeYear,
   percentImprovement,
-  recoveredPct,
+  addressablePct,
   pdfLoading,
   onPdf,
   className = '',
@@ -487,7 +495,7 @@ const PayoffBar = ({
     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground tabular-nums">
       <span>{formatCurrency(monthly)}/mo</span>
       <span>{formatCurrency(threeYear)} / 3yr</span>
-      <span className="text-primary">~{formatPercentage(recoveredPct, 0)} recovered</span>
+      <span className="text-primary">~{formatPercentage(addressablePct, 0)} addressable</span>
     </div>
 
     <div className="mt-3 flex gap-2">
