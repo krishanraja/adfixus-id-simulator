@@ -38,8 +38,10 @@ export interface IdSimulatorState {
   displayCPM: number;
   videoCPM: number;
   risk: RiskScenario;
-  // ID-infrastructure assumptions (all live)
-  safariShare: number; // 0-1, browser traffic share on Safari/iOS
+  // ID-infrastructure assumptions (all live). Safari/iOS share is deliberately
+  // NOT here: it is a property of each domain's traffic (DomainDraft.safariShare)
+  // and the engine consumes the pageview-weighted value, so there is one source
+  // of truth for it - the per-property control - rather than a duplicate global.
   baselineAddressability: number; // 0-1, current total addressable inventory
   targetSafariAddressability: number; // 0-1, recovered Safari addressability
   cpmUpliftFactor: number; // 0-1, CPM boost on newly addressable inventory
@@ -98,7 +100,6 @@ const initialState = (): IdSimulatorState => ({
   displayCPM: DEFAULTS.displayCPM,
   videoCPM: DEFAULTS.videoCPM,
   risk: DEFAULTS.risk,
-  safariShare: DEFAULTS.safariShare,
   baselineAddressability: DEFAULTS.baselineAddressability,
   targetSafariAddressability: DEFAULTS.targetSafariAddressability,
   cpmUpliftFactor: DEFAULTS.cpmUpliftFactor,
@@ -164,7 +165,16 @@ export function deriveAudienceVisibility(
 /** Runs the core engine for the given state, applying constant overrides. */
 export function computeResults(state: IdSimulatorState): UnifiedResults {
   // Apply live constant overrides around the calculation.
-  ADDRESSABILITY_BENCHMARKS.SAFARI_SHARE = state.safariShare;
+  // Safari/iOS share drives the addressability recovery, so it must reflect the
+  // visitor's actual per-property inputs. The engine reads the global constant, so
+  // we set it to the pageview-weighted average of every domain's Safari share -
+  // making the per-property "Safari / iOS share" control the single source of
+  // truth that genuinely moves the ROI (single domain = that domain's value).
+  const safariTotalPv = state.domains.reduce((s, d) => s + d.monthlyPageviews, 0);
+  ADDRESSABILITY_BENCHMARKS.SAFARI_SHARE =
+    safariTotalPv > 0
+      ? state.domains.reduce((s, d) => s + d.safariShare * d.monthlyPageviews, 0) / safariTotalPv
+      : state.domains[0]?.safariShare ?? DEFAULTS.safariShare;
   ADDRESSABILITY_BENCHMARKS.BASELINE_TOTAL_ADDRESSABILITY = state.baselineAddressability;
   ADDRESSABILITY_BENCHMARKS.CONTEXTUAL_CPM_RATIO = state.contextualCpmRatio;
   OPERATIONAL_BENCHMARKS.CDP_MONTHLY_SAVINGS = state.cdpMonthlySavings;

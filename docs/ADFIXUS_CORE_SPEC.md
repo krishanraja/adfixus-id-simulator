@@ -67,9 +67,14 @@ month-by-month ramp used by the charts.
 
 **Live benchmark overrides.** A few benchmarks (Safari share, baseline
 addressability, contextual-CPM ratio, CDP savings) are exported as mutable
-constant objects. So the Fine-tune sliders stay truthful, `useIdSimulator` snapshots
-the pristine defaults, applies the user's values around each `calculate()` call,
-and restores them in a `finally`, see the comments in that file.
+constant objects. So the sliders stay truthful, `useIdSimulator` snapshots the
+pristine defaults, applies the user's values around each `calculate()` call, and
+restores them in a `finally`, see the comments in that file. **Safari share is the
+one control sourced per-property:** the engine reads the global `SAFARI_SHARE`, so
+`useIdSimulator` sets it to the **pageview-weighted average of every domain's
+`safariShare`** - making the Configure "Safari / iOS share" control the single
+source of truth that drives the addressability recovery (there is no separate
+global Safari slider).
 
 ### 1.2 The `AssumptionOverrides` surface
 

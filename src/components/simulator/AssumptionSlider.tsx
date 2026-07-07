@@ -37,15 +37,15 @@ export const AssumptionSlider = ({
 
   return (
     <div className="space-y-2 p-4 rounded-xl border border-border bg-secondary/30 hover:border-primary/40 transition-colors">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-medium text-foreground truncate">{label}</span>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-start gap-1.5">
+          <span className="text-sm font-medium leading-snug text-foreground">{label}</span>
           {tooltipContent && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="inline-flex">
-                    <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-help text-muted-foreground" />
                   </span>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
@@ -55,7 +55,7 @@ export const AssumptionSlider = ({
             </TooltipProvider>
           )}
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex shrink-0 items-center gap-1.5">
           <span
             className={`text-sm font-semibold tabular-nums ${
               isModified ? 'text-primary' : 'text-foreground'

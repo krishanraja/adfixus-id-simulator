@@ -72,18 +72,6 @@ export const AdvancedPanel = ({
               </h4>
               <div className="grid gap-4 md:grid-cols-2">
                 <AssumptionSlider
-                  label="Safari / iOS traffic share"
-                  description="Portion of your audience browsing on Safari or iOS"
-                  value={state.safariShare * 100}
-                  defaultValue={DEFAULTS.safariShare * 100}
-                  min={10}
-                  max={60}
-                  step={1}
-                  formatValue={pct}
-                  onChange={(v) => patch({ safariShare: v / 100 })}
-                  tooltipContent="Safari's ITP wipes cookies after 7 days, making this traffic largely unaddressable today. Typical open-web publishers see 30-40%."
-                />
-                <AssumptionSlider
                   label="Baseline addressability"
                   description="Share of total inventory addressable today"
                   value={state.baselineAddressability * 100}

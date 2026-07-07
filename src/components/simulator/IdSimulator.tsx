@@ -56,7 +56,6 @@ export const IdSimulator = ({ simulator, embedded = false, profile }: IdSimulato
 
   const modifiedCount = useMemo(() => {
     let n = 0;
-    if (!approxEq(state.safariShare, DEFAULTS.safariShare)) n++;
     if (!approxEq(state.baselineAddressability, DEFAULTS.baselineAddressability)) n++;
     if (!approxEq(state.targetSafariAddressability, DEFAULTS.targetSafariAddressability)) n++;
     if (!approxEq(state.cpmUpliftFactor, DEFAULTS.cpmUpliftFactor)) n++;
@@ -68,7 +67,6 @@ export const IdSimulator = ({ simulator, embedded = false, profile }: IdSimulato
 
   const resetAssumptions = () => {
     patch({
-      safariShare: DEFAULTS.safariShare,
       baselineAddressability: DEFAULTS.baselineAddressability,
       targetSafariAddressability: DEFAULTS.targetSafariAddressability,
       cpmUpliftFactor: DEFAULTS.cpmUpliftFactor,

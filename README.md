@@ -35,8 +35,9 @@ drawer** holding the no-scroll **`FullPicture` console**
 (`src/components/simulator/FullPicture.tsx`): a persistent **result rail** - the
 live annual value, headline metrics and two CTAs (book a conversation + a
 downloadable PDF summary) - beside a tabbed explore pane. The tabs are
-**Configure** (multi-domain portfolio + CPMs), **Fine-tune** (the 6 economics +
-8 readiness sliders, split into Economics/Readiness sub-tabs), **Breakdown**
+**Configure** (multi-domain portfolio + CPMs, incl. per-property Safari share),
+**Fine-tune** (the 5 economics + 8 readiness sliders, split into
+Economics/Readiness sub-tabs), **Breakdown**
 (addressability waterfall + display/video split), **Ramp** (the ramp chart), and -
 when a domain was recognised - **Briefing** (the full tailored briefing). On
 narrow screens the rail collapses to a compact payoff bar above the tabs, and

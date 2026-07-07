@@ -68,11 +68,12 @@ pane beside a persistent result rail (the live annual value, headline metrics an
 both CTAs) that collapses to a compact payoff bar on narrow screens. Its tabs
 expose the full model:
 
-- **Configure** - `DomainPortfolio` (model 1..N domains, aggregated by the engine)
-  + `BasicInputs` (display/video CPM, execution outlook (risk)).
-- **Fine-tune** - the 14 benchmark `AssumptionSlider`s, split into an **Economics**
-  sub-tab (Safari share, baseline & recovered addressability, CPM-uplift factor,
-  contextual-CPM ratio, CDP savings) and a **Readiness** sub-tab (the **8 readiness
+- **Configure** - `DomainPortfolio` (model 1..N domains, aggregated by the engine;
+  per-property monthly pageviews, **Safari / iOS share**, ads/page, display/video
+  split) + `BasicInputs` (display/video CPM, execution outlook (risk)).
+- **Fine-tune** - the 13 benchmark `AssumptionSlider`s, split into an **Economics**
+  sub-tab (baseline & recovered addressability, CPM-uplift factor, contextual-CPM
+  ratio, CDP savings) and a **Readiness** sub-tab (the **8 readiness
   sliders**: sales readiness, advertiser buy-in, organisational ownership, market
   conditions, training, integration reliability, resource availability, technical
   deployment). These flow into the engine as `AssumptionOverrides` (core spec §2.2).

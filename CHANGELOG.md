@@ -16,7 +16,36 @@ Durability Simulator lead magnet.
 
 ---
 
-## [4.1.0] - No-scroll full-picture console (current)
+## [4.2.0] - Every control drives the model; no truncated labels (current)
+
+### Fixed
+- **The per-property "Safari / iOS share" control now moves the ROI.** The engine
+  reads a global `SAFARI_SHARE` constant that `useIdSimulator` was setting from a
+  *separate* global override, so the prominent Configure Safari slider (and the
+  tailored per-vertical Safari seed) were silently ignored while a duplicate
+  Fine-tune slider secretly drove the math. `useIdSimulator` now sets
+  `SAFARI_SHARE` to the **pageview-weighted average of every domain's Safari
+  share**, making the per-property control the single source of truth. This also
+  aligns the audience-visibility story (`deriveAudienceVisibility`) and the metric
+  cards, which already used the per-domain value, with the engine.
+- **Removed the duplicate global Safari slider** from Fine-tune → Economics (now 5
+  economics sliders). Safari share lives only on the property, per the model.
+- **No more truncated slider labels.** `AssumptionSlider` labels wrap instead of
+  clipping (e.g. "Recovered Safari addressability"), so nothing is cut off in the
+  Fine-tune tabs at any column width.
+
+### Verified
+- Every Configure and Fine-tune control was driven in a real browser and moves the
+  expected result: pageviews, ads/page, display split, CPMs, risk, Safari share,
+  recovered-Safari, CPM-uplift, contextual-CPM, CDP savings and all readiness
+  factors change the ROI; **baseline addressability** correctly moves only the
+  addressability *picture* (the Breakdown waterfall), not the recovery $, and
+  **technical-deployment months** moves only the ramp curve - both by design.
+- Golden values hold: for `{5M pv, $4.50/$12 CPM, 3.2 ads/page, 80% display, 35%
+  Safari}`, moderate, id-only → current monthly `$96,000`, id-only monthly uplift
+  `$5,298`.
+
+## [4.1.0] - No-scroll full-picture console
 
 The tool is embedded in an iframe on another site, so the experience is now
 built to live entirely within one viewport - the visitor discovers and moves

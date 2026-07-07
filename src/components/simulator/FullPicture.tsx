@@ -102,7 +102,6 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
 
   const modifiedCount = useMemo(() => {
     let n = 0;
-    if (!approxEq(state.safariShare, DEFAULTS.safariShare)) n++;
     if (!approxEq(state.baselineAddressability, DEFAULTS.baselineAddressability)) n++;
     if (!approxEq(state.targetSafariAddressability, DEFAULTS.targetSafariAddressability)) n++;
     if (!approxEq(state.cpmUpliftFactor, DEFAULTS.cpmUpliftFactor)) n++;
@@ -114,7 +113,6 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
 
   const resetAssumptions = () =>
     patch({
-      safariShare: DEFAULTS.safariShare,
       baselineAddressability: DEFAULTS.baselineAddressability,
       targetSafariAddressability: DEFAULTS.targetSafariAddressability,
       cpmUpliftFactor: DEFAULTS.cpmUpliftFactor,
@@ -280,18 +278,6 @@ const FineTunePanel = ({ state, patch, patchReadiness }: FineTunePanelProps) => 
 
       {group === 'economics' ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <AssumptionSlider
-            label="Safari / iOS traffic share"
-            description="Portion of your audience on Safari or iOS"
-            value={state.safariShare * 100}
-            defaultValue={DEFAULTS.safariShare * 100}
-            min={10}
-            max={60}
-            step={1}
-            formatValue={pct}
-            onChange={(v) => patch({ safariShare: v / 100 })}
-            tooltipContent="Safari's ITP wipes cookies after 7 days, making this traffic largely unaddressable today. Typical open-web publishers see 30-40%."
-          />
           <AssumptionSlider
             label="Baseline addressability"
             description="Share of total inventory addressable today"
