@@ -29,9 +29,8 @@ It asks for almost nothing, then reveals the payoff:
    conversation" CTA. The full four-part briefing (context, identity gap, what it
    costs, how AdFixus closes it) lives in the full-picture console's Briefing tab.
 
-From the reveal, **"See the full picture / Customise"** (labelled **"See the full
-picture & briefing / Customise"** once a business is recognised) opens a **depth
-drawer** holding the no-scroll **`FullPicture` console**
+From the reveal, a **"See the full picture"** button opens a **depth
+drawer** (titled **"The full picture · Customise"**) holding the no-scroll **`FullPicture` console**
 (`src/components/simulator/FullPicture.tsx`): a persistent **result rail** - the
 live annual value, headline metrics and two CTAs (book a conversation + a
 downloadable PDF summary) - beside a tabbed explore pane. The console asks a

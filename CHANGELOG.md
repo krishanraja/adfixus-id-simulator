@@ -20,7 +20,7 @@ Durability Simulator lead magnet.
 
 The Breakdown both looked wrong and undersold AdFixus: it asserted a hardcoded
 "Safari addressability today: 0%", capped recovery at 45%, and showed a raw
-addressability picture next to a silently risk-discounted dollar — so the two
+addressability picture next to a silently risk-discounted dollar - so the two
 seemed inconsistent. The real story is that a durable, owned ID makes the dark
 Apple/Safari audience addressable, lifting **total** addressability from ~65% to
 ~95%, and the dollars follow from exactly that.
@@ -29,16 +29,16 @@ Apple/Safari audience addressable, lifting **total** addressability from ~65% to
 - **The story is now total addressability.** "Addressable today" is the non-Apple
   audience you still recognise once cookies expire, so it is derived from the Apple
   share (`BASELINE_TOTAL_ADDRESSABILITY = 1 − AppleShare`, a per-render override in
-  `useIdSimulator`). "With AdFixus" = `1 − AppleShare×(1 − recovery)` — **always
+  `useIdSimulator`). "With AdFixus" = `1 − AppleShare×(1 − recovery)` - **always
   ≤ 100%** (self-clamping), and the Apple slider now moves both endpoints truthfully.
   This is display-only: **the dollar totals are unchanged by it** (revenue reads only
   the recovered slice).
 - **Recovery recalibrated to near-full.** `OPPORTUNITY_PRESETS.targetSafariAddressability`
   → `0.70 / 0.85 / 0.95` (Cautious / Balanced / Ambitious) → total addressability
   ~89 / 95 / 98% at the default 35% Apple share.
-- **Bulletproof picture ↔ $.** The Breakdown adds a traceability strip — recovered
+- **Bulletproof picture ↔ $.** The Breakdown adds a traceability strip - recovered
   slice → newly-addressable impressions → full-potential $ → realised-at-your-rollout
-  $ — so "higher addressability → higher ROI" is legible, with the rollout discount
+  $ - so "higher addressability → higher ROI" is legible, with the rollout discount
   shown, not hidden. Addressability is the capability; the dollars are what the rollout
   realises in year one. `deriveAudienceVisibility` now returns `addressableWithAdfixus`,
   `grossRecovery`, `realizedRecovery`, `realizedFraction`, `newlyAddressableImpressions`.
@@ -58,7 +58,7 @@ Balanced · Backed (5M pv, 3.2 ads, 35% Apple, moderate) →
 ### Verified
 - Golden + both ladders confirmed against the engine (numeric harness): opportunity
   `$7,207 / $9,679 / $12,125` (89.5 / 94.75 / 98.25%); rollout `$7,192 / $9,679 /
-  $11,493` (addressability holds at 94.75% — capability vs realisation). Apple-share
+  $11,493` (addressability holds at 94.75% - capability vs realisation). Apple-share
   sweep 10→70%: "today" falls, "with AdFixus" never reaches 100%. Traceability strip's
   realised $ + CDP = the rail total. `tsc` / `lint` / `build` clean.
 
@@ -79,13 +79,13 @@ default or a pre-defined scenario.
 - **Fine-tune → renamed "Scenario", now pickers-only.** The two situation pickers
   (*How far do you want to push?* and *How will you roll it out?*) each show a
   read-only **"What we assumed"** line derived from the preset numbers
-  (`opportunityAssumption` / `rolloutAssumption`) — no raw sliders.
+  (`opportunityAssumption` / `rolloutAssumption`) - no raw sliders.
 
 ### Removed (from the UI; defaults kept)
-- The **"What you already know"** card — `baselineAddressability` (which only moved
+- The **"What you already know"** card - `baselineAddressability` (which only moved
   the Breakdown chart, never the headline), `contextualCpmRatio`, and the CDP-spend
   question. All three stay at their benchmark defaults, so the number is unchanged.
-- **Ads-per-page** and **display/video split** controls — inferred from the vertical
+- **Ads-per-page** and **display/video split** controls - inferred from the vertical
   seed / default, not asked.
 - **All 10 raw "Advanced" sliders** under the scenario pickers (2 upside + 8
   readiness + technical-deployment).
@@ -122,15 +122,15 @@ situation.
   - *The opportunity* (**Cautious / Balanced / Ambitious**) sets the two upside
     assumptions only AdFixus can benchmark (`targetSafariAddressability`,
     `cpmUpliftFactor`).
-  - *Your rollout* (**Lean / Backed / Strategic**) — genuine, empathetic publisher
-    situations, not catchphrases — selects the realisation backbone (`risk`) and
+  - *Your rollout* (**Lean / Backed / Strategic**) - genuine, empathetic publisher
+    situations, not catchphrases - selects the realisation backbone (`risk`) and
     clears the readiness overrides so the estimate is the pure backbone.
 - **The three facts a publisher actually knows moved to Configure** under a new
   **"What you already know"** card, in plain language: *share matched to a known
   user today*, *what an unmatched impression still earns*, and *monthly spend on
   your data platform / CDP* (which now derives the saving from the spend they know,
   showing "≈ $X/mo saved").
-- **Removed the "How cautious should we be?" risk toggle** from Configure — the
+- **Removed the "How cautious should we be?" risk toggle** from Configure - the
   rollout picker owns that one concept now, so risk isn't asked in two places.
 - **Reframed the assumption copy** throughout to publisher-plain wording ("How much
   Safari audience we win back", "Premium on impressions we make addressable again").
@@ -139,7 +139,7 @@ situation.
 - **The "Technical deployment" control now actually moves the ramp.** It set a local
   variable `generateMonthlyProjection` never read; the projection now reads the
   `technicalDeploymentMonths` override (else the rollout's backbone: 12 / 9 / 6).
-  Additive and ramp-only — it never changes the annual total.
+  Additive and ramp-only - it never changes the annual total.
 - **Readiness dials no longer double-count.** A rollout sends no readiness override;
   the 8 cards display a calibrated **neutral** baseline (`NEUTRAL_READINESS`, ×1.0),
   so nudging one writes an honest deviation instead of silently lowering the number.
@@ -148,13 +148,13 @@ situation.
   unconditional same-origin `<a download>`, which isn't blocked.
 
 ### Removed (dead code)
-- Deleted the never-mounted standalone simulator cluster — `IdSimulator`,
+- Deleted the never-mounted standalone simulator cluster - `IdSimulator`,
   `AdvancedPanel`, `FramingHero`, `HeroNumber`, `ResultsSection`,
-  `results/MetricCards`, and `AppHeader` — plus the now-unused `reset` from
+  `results/MetricCards`, and `AppHeader` - plus the now-unused `reset` from
   `useIdSimulator`. The live app renders only the guided flow + `FullPicture`.
 
 ### Added
-- `src/core/constants/scenarioPresets.ts` — tool-local opportunity/rollout presets
+- `src/core/constants/scenarioPresets.ts` - tool-local opportunity/rollout presets
   and the neutral-readiness baseline, deliberately kept out of the shared engine.
 
 ### Verified
@@ -279,7 +279,7 @@ everything around it - still 100% client-side, no backend of ours.
 
 ---
 
-## [3.1.0] - Production cleanup (current)
+## [3.1.0] - Production cleanup
 
 ### Changed
 - Docs rewritten to match the guided-flow + AI-era-consultative reality:
@@ -301,7 +301,7 @@ everything around it - still 100% client-side, no backend of ours.
 
 ---
 
-## [3.0.0] - ID Durability Simulator on the shared core (current)
+## [3.0.0] - ID Durability Simulator on the shared core
 
 ### Rebuilt
 - Rebuilt as a fully-configurable ID durability simulator **wired to the shared

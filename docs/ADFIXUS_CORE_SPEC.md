@@ -82,17 +82,23 @@ global Safari slider).
 The 4th argument lets the UI override defaults without editing the core. It is a
 partial, deep-mergeable object (see `types/scenarios.ts`) covering:
 
-- **`readinessFactors`**: 8 business-readiness factors (0-1 each) that modulate
+- **`readinessFactors`**: 8 business-readiness factors (7 are 0-1, plus `technicalDeploymentMonths`, a months value) that modulate
   risk-scenario efficiency. The engine still consumes them, but this tool no longer
-  surfaces them as controls — a rollout sends `{}` (pure backbone).
+  surfaces them as controls - a rollout sends `{}` (pure backbone).
 - **`targetSafariAddressability` / `cpmUpliftFactor`**: the two first-class
-  ID-infrastructure levers, set by the console's Opportunity scenario (below).
-- **`benchmarks`**: override any industry-benchmark constant from
-  `constants/benchmarks.ts`.
-- **`adoptionRate` / `rampMonths`**: override the risk-scenario adoption curve.
+  ID-infrastructure levers, set by the console's Opportunity scenario (below), and
+  the only ID-infrastructure overrides the engine reads here. Baseline
+  addressability, contextual-CPM ratio and CDP savings are applied through the
+  mutable-constant injection in §1.1, not this object.
+- The type also declares CAPI and Media-Performance fields (`capiServiceFee`,
+  `capiMatchRate`, `capiYearlyCampaigns`, `capiAvgCampaignSpend`,
+  `capiLineItemShare`, `premiumInventoryShare`, `premiumYieldUplift`) and three
+  unused ID-infra fields (`safariBaselineAddressability`, `safariWithDurableId`,
+  `cdpCostReduction`). These are engine-internal and not set by this tool's id-only
+  path.
 
 **The Scenario pickers → overrides.** The console's Scenario tab asks a publisher
-only what they can reason about — two situation pickers, no raw dials — whose
+only what they can reason about - two situation pickers, no raw dials - whose
 presets live in `constants/scenarioPresets.ts` (tool-local product data, kept out
 of the shared engine so the core stays identical across AdFixus tools). Each picker
 shows a read-only "what we assumed" line built from the preset numbers
@@ -100,11 +106,11 @@ shows a read-only "what we assumed" line built from the preset numbers
 
 - *How far to push* (`OPPORTUNITY_PRESETS`, Cautious / Balanced / Ambitious) sets
   `targetSafariAddressability` (the recovered fraction of the Apple slice: 0.70 / 0.85
-  / 0.95) + `cpmUpliftFactor` — the two upside assumptions only AdFixus can benchmark.
+  / 0.95) + `cpmUpliftFactor` - the two upside assumptions only AdFixus can benchmark.
   First paint seeds the **Balanced** preset (0.85), which is the golden baseline.
 - *How to roll out* (`ROLLOUT_PRESETS`, Lean / Backed / Strategic) selects the `risk`
   backbone (`conservative / moderate / optimistic`) and **clears `readinessFactors`
-  to `{}`** — the estimate is the pure backbone. `NEUTRAL_READINESS` documents the
+  to `{}`** - the estimate is the pure backbone. `NEUTRAL_READINESS` documents the
   per-factor value that gives a ×1.0 multiplier (the neutral point), retained for
   reference now that the readiness dials are no longer shown.
 
@@ -124,7 +130,7 @@ completeness.
 - **Apple/Safari addressability recovery:** newly-addressable Apple impressions =
   `impressions × AppleShare(default 0.35) × recovery`, where
   `recovery = targetSafariAddressability` (Balanced 0.85; the recovered fraction of the
-  dark Apple slice — near-full because a durable, owned ID re-recognises returning
+  dark Apple slice - near-full because a durable, owned ID re-recognises returning
   Apple/Safari users past the 7-day ITP window).
 - **CPM uplift is a delta, not the full CPM.** Newly-addressable Safari inventory
   today earns *contextual* CPM (`CONTEXTUAL_CPM_RATIO = 0.72` of addressable). The
@@ -147,7 +153,7 @@ completeness.
   `deriveAudienceVisibility()` exposes both (`addressableWithAdfixus`, plus
   `grossRecovery` / `realizedRecovery` / `realizedFraction`) so the Breakdown can show
   the recovered slice → impressions → full-potential $ → realised $ as one legible
-  chain — no bald "Safari is 0% addressable today" absolute anywhere.
+  chain - no bald "Safari is 0% addressable today" absolute anywhere.
 
 ### 2.2 CAPI Capabilities (`id-capi`+, engine-internal)
 - Match rate improves `BASELINE_MATCH_RATE 30% → IMPROVED_MATCH_RATE 75%`.
@@ -169,15 +175,15 @@ Exact values in `constants/riskScenarios.ts`. The 8 readiness factors
 (`constants/readinessFactors.ts`) further modulate these.
 
 **Ramp length.** `generateMonthlyProjection` shapes the 12-month curve from
-`rampUpMonths` — the risk backbone (conservative 12 / moderate 9 / optimistic 6),
+`rampUpMonths` - the risk backbone (conservative 12 / moderate 9 / optimistic 6),
 i.e. the rollout the publisher picked. (The engine still honours a
 `readinessFactors.technicalDeploymentMonths` override if one is supplied, but this
 tool no longer surfaces that as a control.) Ramp length shapes only the monthly
-curve — it never changes the annual total.
+curve - it never changes the annual total.
 
 ### 2.5 Golden values (regression guard)
 For inputs `{5,000,000 pageviews, $4.50 display / $12 video CPM, 3.2 ads/page,
-80% display, 35% Apple share}`, moderate risk, `scope: 'id-only'` — i.e. the
+80% display, 35% Apple share}`, moderate risk, `scope: 'id-only'` - i.e. the
 console's default **Balanced · Backed** scenario (recovery 0.85) with no readiness
 overrides:
 
@@ -194,7 +200,7 @@ Recovery revenue is a *capability realised at the rollout*: full-potential recov
 The two scenario pickers are strictly monotonic on the monthly uplift: opportunity
 **$7,207 / $9,679 / $12,125** (Cautious / Balanced / Ambitious; total addressability
 89.5 / 94.75 / 98.25%), rollout **$7,192 / $9,679 / $11,493** (Lean / Backed /
-Strategic; addressability holds at 94.75% — capability vs realisation). If you touch
+Strategic; addressability holds at 94.75% - capability vs realisation). If you touch
 `benchmarks.ts`, `riskScenarios.ts`, or `scenarioPresets.ts`, re-check these before
 shipping.
 

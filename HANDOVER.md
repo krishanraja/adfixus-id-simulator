@@ -128,7 +128,7 @@ audit to it - entirely client-side:
 
 `GuidedFlow` applies the resolved profile's seeds to the shared simulator and passes
 the profile into `TailoredBriefing` (shown as a compact teaser on the Reveal, and
-in full in the console's Briefing tab). See core spec §6.
+in full in the console's Briefing tab). See core spec §5.
 
 ## What to do next
 
