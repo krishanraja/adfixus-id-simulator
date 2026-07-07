@@ -34,14 +34,16 @@ picture & briefing / Customise"** once a business is recognised) opens a **depth
 drawer** holding the no-scroll **`FullPicture` console**
 (`src/components/simulator/FullPicture.tsx`): a persistent **result rail** - the
 live annual value, headline metrics and two CTAs (book a conversation + a
-downloadable PDF summary) - beside a tabbed explore pane. The tabs are
-**Configure** (multi-domain portfolio + CPMs incl. per-property Safari share, plus
-*What you already know* - the three business facts a publisher can actually state),
-**Fine-tune** (two publisher-framed scenario pickers - *the opportunity* i.e. how
-far to push, and *your rollout* i.e. how you'll execute - each with the
-per-variable diligence cards one click away under *Advanced*), **Breakdown**
-(addressability waterfall + display/video split), **Ramp** (the ramp chart), and -
-when a domain was recognised - **Briefing** (the full tailored briefing). On
+downloadable PDF summary) - beside a tabbed explore pane. The console asks a
+publisher only what they actually know; everything else is an open-web benchmark
+default or a pre-defined scenario. The tabs are **Configure** (your audience -
+monthly pageviews + one *Apple / Safari share* question, multi-site tucked behind
+an optional reveal - and *What your ads earn*, your average display/video CPMs),
+**Scenario** (two plain pickers - *how far do you want to push?* and *how will you
+roll it out?* - each with a read-only "what we assumed" line, no raw dials),
+**Breakdown** (addressability waterfall + display/video split), **Ramp** (the ramp
+chart), and - when a domain was recognised - **Briefing** (the full tailored
+briefing). On
 narrow screens the rail collapses to a compact payoff bar above the tabs, and
 every input updates the payoff live. The flow and the console **share one
 simulator instance**, so the audience size chosen up front carries straight into
@@ -184,10 +186,9 @@ src/
       DepthDrawer.tsx          Bounded, no-scroll frame that hosts the FullPicture console
       motion.ts                Shared framer-motion variants
     simulator/                 The no-scroll "full picture" console (drawer)
-      FullPicture.tsx          The drawer surface: result rail / payoff bar + tabbed explore pane (Configure, Fine-tune, Breakdown, Ramp, Briefing); hosts the scenario pickers + KnownFacts + advanced diligence cards
-      DomainPortfolio.tsx      Model 1..N domains (+ monthly pageviews, Safari share, ads/page, display/video per domain)
-      BasicInputs.tsx          Display & video CPM (the "How you monetise" card)
-      AssumptionSlider.tsx     Labelled slider with tooltip, live value + reset affordance
+      FullPicture.tsx          The drawer surface: result rail / payoff bar + tabbed explore pane (Configure, Scenario, Breakdown, Ramp, Briefing); hosts the two scenario pickers + read-only "what we assumed" lines
+      DomainPortfolio.tsx      "Your audience": monthly pageviews + one Apple/Safari share question (multi-site + name behind an optional reveal). Ads/page & display-video split are inferred, not asked
+      BasicInputs.tsx          Average display & video CPM (the "What your ads earn" card)
       results/                 AddressabilityWaterfall, RampChart, DisplayVideoBreakdown
     ui/                        Vendored shadcn/ui primitives (only the used ones)
     brand/AdfixusLogo.tsx      Real AdFixus wordmark/glyph (canonical brand SVG; the favicon is derived from this geometry - not rendered in the live flow)

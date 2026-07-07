@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { SlidersHorizontal } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
 interface BasicInputsProps {
   displayCPM: number;
@@ -20,12 +20,12 @@ export const BasicInputs = ({
     <Card className="p-6">
       <div className="mb-5 flex items-center gap-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-          <SlidersHorizontal className="h-4 w-4 text-primary" />
+          <DollarSign className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h3 className="text-base font-semibold">How you monetise</h3>
+          <h3 className="text-base font-semibold">What your ads earn</h3>
           <p className="text-xs text-muted-foreground">
-            Your typical CPMs set what each recovered impression is worth
+            Your average CPMs set what each recovered impression is worth
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@ export const BasicInputs = ({
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">Display CPM</Label>
+              <Label className="text-sm font-medium">Average display CPM</Label>
               <span className="rounded-md bg-primary/10 px-2.5 py-0.5 text-base font-bold text-primary tabular-nums">
                 ${displayCPM.toFixed(2)}
               </span>
@@ -55,7 +55,7 @@ export const BasicInputs = ({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">Video CPM</Label>
+              <Label className="text-sm font-medium">Average video CPM</Label>
               <span className="rounded-md bg-primary/10 px-2.5 py-0.5 text-base font-bold text-primary tabular-nums">
                 ${videoCPM.toFixed(2)}
               </span>

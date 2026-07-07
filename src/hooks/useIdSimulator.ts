@@ -30,11 +30,6 @@ import {
   type RolloutKey,
 } from '@/core/constants/scenarioPresets';
 
-// Share of a publisher's data-platform/CDP spend recovered by collapsing
-// duplicate IDs (~3.5 -> ~1.1 per user). Used to turn the spend they know into
-// the modelled monthly saving.
-export const CDP_DEDUPE_SAVINGS_RATE = 0.15;
-
 export interface DomainDraft {
   id: string;
   name: string;
@@ -251,15 +246,6 @@ export function useIdSimulator() {
     setState((s) => ({ ...s, ...partial }));
   }, []);
 
-  const patchReadiness = useCallback((field: keyof IdSimulatorState['readiness'], value: number | undefined) => {
-    setState((s) => {
-      const readiness = { ...s.readiness };
-      if (value === undefined) delete readiness[field];
-      else readiness[field] = value;
-      return { ...s, readiness };
-    });
-  }, []);
-
   const addDomain = useCallback(() => {
     setState((s) => ({ ...s, domains: [...s.domains, newDomain()] }));
   }, []);
@@ -294,7 +280,6 @@ export function useIdSimulator() {
     results,
     visibility,
     patch,
-    patchReadiness,
     addDomain,
     updateDomain,
     removeDomain,

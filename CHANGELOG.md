@@ -16,7 +16,52 @@ Durability Simulator lead magnet.
 
 ---
 
-## [4.3.0] - Fine-tune reframed for the publisher persona; correctness cleanup (current)
+## [4.4.0] - Ruthless simplification: ask only what a publisher knows (current)
+
+The console still asked questions a Head of Revenue can't answer and that
+overlapped each other ("Share matched to a known user today", "What an unmatched
+impression still earns", four different Safari-adjacent inputs), and one of them
+("Share matched…") didn't even move the headline. The tool now asks the handful of
+things a revenue leader genuinely knows; everything else is an invisible benchmark
+default or a pre-defined scenario.
+
+### Changed
+- **Configure is now two plain cards.** *Your audience* (`DomainPortfolio`) =
+  monthly pageviews + one **"Your Apple audience (Safari & iOS)"** question, with
+  the property name and multi-site controls tucked behind an optional "Run more than
+  one site?" reveal. *What your ads earn* (`BasicInputs`) = average display/video CPM.
+- **Fine-tune → renamed "Scenario", now pickers-only.** The two situation pickers
+  (*How far do you want to push?* and *How will you roll it out?*) each show a
+  read-only **"What we assumed"** line derived from the preset numbers
+  (`opportunityAssumption` / `rolloutAssumption`) — no raw sliders.
+
+### Removed (from the UI; defaults kept)
+- The **"What you already know"** card — `baselineAddressability` (which only moved
+  the Breakdown chart, never the headline), `contextualCpmRatio`, and the CDP-spend
+  question. All three stay at their benchmark defaults, so the number is unchanged.
+- **Ads-per-page** and **display/video split** controls — inferred from the vertical
+  seed / default, not asked.
+- **All 10 raw "Advanced" sliders** under the scenario pickers (2 upside + 8
+  readiness + technical-deployment).
+- Deleted the now-unreferenced `AssumptionSlider.tsx`; dropped the dead
+  `patchReadiness` setter and `CDP_DEDUPE_SAVINGS_RATE` from `useIdSimulator`.
+
+### Result
+Down from ~14 inputs + 10 advanced sliders to **6 plain questions + 2 scenario
+pickers, zero assumption sliders.**
+
+### Verified
+- Golden holds bit-exact at the regression config (5M pv, 3.2 ads/page, Balanced ·
+  Backed) → monthly `$5,298`, improved addressability `77.3%`. The engine, `DEFAULTS`
+  and all presets are untouched and every removed control keeps its default state
+  field, so `computeResults` is unchanged.
+- Every remaining visible input (audience, both CPMs, Apple share) moves the
+  headline; both pickers strictly monotonic ($3,653/$5,298/$6,918 and
+  $4,054/$5,298/$6,218); the "what we assumed" text matches the active preset; Reset
+  restores Balanced · Backed; PDF downloads; no inner scroll at lg/xl. `tsc` / `lint`
+  / `build` clean.
+
+## [4.3.0] - Fine-tune reframed for the publisher persona; correctness cleanup
 
 The tool's user is a publisher's **Head of Revenue / Ad Ops / Data**, not an
 AdFixus insider. The Fine-tune tab used to ask them for internal benchmarks they

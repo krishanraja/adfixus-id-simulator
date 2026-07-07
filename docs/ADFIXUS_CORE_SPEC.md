@@ -28,7 +28,7 @@ src/core/
     benchmarks.ts                 # industry benchmarks (addressability, CAPI, media, operational)
     riskScenarios.ts              # conservative / moderate / optimistic multipliers
     readinessFactors.ts           # 8 business-readiness factors + presets
-    scenarioPresets.ts            # tool-local Fine-tune presets (opportunity + rollout); NOT engine math
+    scenarioPresets.ts            # tool-local Scenario-tab presets (opportunity + rollout) + copy; NOT engine math
     pricingConfig.ts              # AdFixus rate card (engine-internal; unused by this tool's id-only scope)
   types/
     domain.ts                     # CoreDomain + singleDomain() helper
@@ -82,28 +82,30 @@ global Safari slider).
 The 4th argument lets the UI override defaults without editing the core. It is a
 partial, deep-mergeable object (see `types/scenarios.ts`) covering:
 
-- **`readinessFactors`**: the 8 business-readiness sliders (0-1 each). These
-  modulate risk-scenario efficiency. Presets live in `constants/readinessFactors.ts`.
+- **`readinessFactors`**: 8 business-readiness factors (0-1 each) that modulate
+  risk-scenario efficiency. The engine still consumes them, but this tool no longer
+  surfaces them as controls — a rollout sends `{}` (pure backbone).
 - **`targetSafariAddressability` / `cpmUpliftFactor`**: the two first-class
-  ID-infrastructure levers the full-picture console's Fine-tune panel exposes.
+  ID-infrastructure levers, set by the console's Opportunity scenario (below).
 - **`benchmarks`**: override any industry-benchmark constant from
   `constants/benchmarks.ts`.
 - **`adoptionRate` / `rampMonths`**: override the risk-scenario adoption curve.
 
-**The Fine-tune scenario pickers → overrides.** The console's Fine-tune tab does
-not expose raw benchmarks to the publisher; it offers two situation pickers whose
+**The Scenario pickers → overrides.** The console's Scenario tab asks a publisher
+only what they can reason about — two situation pickers, no raw dials — whose
 presets live in `constants/scenarioPresets.ts` (tool-local product data, kept out
-of the shared engine so the core stays identical across AdFixus tools):
+of the shared engine so the core stays identical across AdFixus tools). Each picker
+shows a read-only "what we assumed" line built from the preset numbers
+(`opportunityAssumption` / `rolloutAssumption`), so the copy can't drift from the math:
 
-- *The opportunity* (`OPPORTUNITY_PRESETS`, Cautious / Balanced / Ambitious) sets
+- *How far to push* (`OPPORTUNITY_PRESETS`, Cautious / Balanced / Ambitious) sets
   `targetSafariAddressability` + `cpmUpliftFactor` — the two upside assumptions only
   AdFixus can benchmark. **Balanced = the engine defaults**, so first paint is golden.
-- *Your rollout* (`ROLLOUT_PRESETS`, Lean / Backed / Strategic) selects the `risk`
+- *How to roll out* (`ROLLOUT_PRESETS`, Lean / Backed / Strategic) selects the `risk`
   backbone (`conservative / moderate / optimistic`) and **clears `readinessFactors`
-  to `{}`** — the estimate is the pure backbone, with no double-count against the
-  8 readiness dials. Those dials *display* a calibrated neutral (`NEUTRAL_READINESS`,
-  the per-factor value giving a ×1.0 multiplier); only a factor the user actually
-  nudges is sent, as an honest deviation from neutral.
+  to `{}`** — the estimate is the pure backbone. `NEUTRAL_READINESS` documents the
+  per-factor value that gives a ×1.0 multiplier (the neutral point), retained for
+  reference now that the readiness dials are no longer shown.
 
 ---
 
@@ -154,10 +156,11 @@ Exact values in `constants/riskScenarios.ts`. The 8 readiness factors
 (`constants/readinessFactors.ts`) further modulate these.
 
 **Ramp length.** `generateMonthlyProjection` shapes the 12-month curve from
-`rampUpMonths`, reading the `readinessFactors.technicalDeploymentMonths` override
-when present, else the risk backbone (conservative 12 / moderate 9 / optimistic 6).
-The rollout picker surfaces this as the "Technical deployment" card. Ramp length
-shapes only the monthly curve — it never changes the annual total.
+`rampUpMonths` — the risk backbone (conservative 12 / moderate 9 / optimistic 6),
+i.e. the rollout the publisher picked. (The engine still honours a
+`readinessFactors.technicalDeploymentMonths` override if one is supplied, but this
+tool no longer surfaces that as a control.) Ramp length shapes only the monthly
+curve — it never changes the annual total.
 
 ### 2.5 Golden values (regression guard)
 For inputs `{5,000,000 pageviews, $4.50 display / $12 video CPM, 3.2 ads/page,

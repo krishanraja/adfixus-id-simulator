@@ -57,12 +57,35 @@ export const ROLLOUT_PRESETS: Record<
 };
 
 /** The full-deployment horizon (months) each rollout implies - drives the ramp
- *  curve and is the displayed default for the "Technical deployment" card. */
+ *  curve and feeds the read-only "what we assumed" line under the rollout picker. */
 export const ROLLOUT_RAMP_MONTHS: Record<RolloutKey, number> = {
   lean: 12,
   backed: 9,
   strategic: 6,
 };
+
+/** A few plain words describing each rollout's execution posture. */
+const ROLLOUT_SUMMARY: Record<RolloutKey, string> = {
+  lean: 'small team, prove it first',
+  backed: 'dedicated owner, aligned teams',
+  strategic: 'exec-sponsored, fully resourced',
+};
+
+/**
+ * Read-only one-line summaries of what each preset assumes, shown under the
+ * scenario pickers so the model stays transparent without exposing raw dials.
+ * Derived from the preset numbers, so the copy can never drift from the math.
+ */
+export function opportunityAssumption(key: OpportunityKey): string {
+  const p = OPPORTUNITY_PRESETS[key];
+  return `~${Math.round(p.targetSafariAddressability * 100)}% of your Apple audience re-recognised · +${Math.round(
+    p.cpmUpliftFactor * 100,
+  )}% CPM premium`;
+}
+
+export function rolloutAssumption(key: RolloutKey): string {
+  return `${ROLLOUT_RAMP_MONTHS[key]}-month rollout · ${ROLLOUT_SUMMARY[key]}`;
+}
 
 /**
  * Per-factor readiness values that produce a NEUTRAL (x1.0) engine multiplier.
