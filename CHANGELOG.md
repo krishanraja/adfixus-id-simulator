@@ -16,7 +16,67 @@ Durability Simulator lead magnet.
 
 ---
 
-## [4.2.0] - Every control drives the model; no truncated labels (current)
+## [4.3.0] - Fine-tune reframed for the publisher persona; correctness cleanup (current)
+
+The tool's user is a publisher's **Head of Revenue / Ad Ops / Data**, not an
+AdFixus insider. The Fine-tune tab used to ask them for internal benchmarks they
+can't know ("Recovered Safari addressability", "CPM uplift factor") and double-
+counted execution risk against the Configure risk toggle. It now speaks their
+language: state the few facts you know, then pick the scenario that matches your
+situation.
+
+### Changed
+- **Fine-tune is now scenario-led.** Two situation pickers replace the raw benchmark
+  grid, each with the per-variable diligence cards one click away under **Advanced**:
+  - *The opportunity* (**Cautious / Balanced / Ambitious**) sets the two upside
+    assumptions only AdFixus can benchmark (`targetSafariAddressability`,
+    `cpmUpliftFactor`).
+  - *Your rollout* (**Lean / Backed / Strategic**) — genuine, empathetic publisher
+    situations, not catchphrases — selects the realisation backbone (`risk`) and
+    clears the readiness overrides so the estimate is the pure backbone.
+- **The three facts a publisher actually knows moved to Configure** under a new
+  **"What you already know"** card, in plain language: *share matched to a known
+  user today*, *what an unmatched impression still earns*, and *monthly spend on
+  your data platform / CDP* (which now derives the saving from the spend they know,
+  showing "≈ $X/mo saved").
+- **Removed the "How cautious should we be?" risk toggle** from Configure — the
+  rollout picker owns that one concept now, so risk isn't asked in two places.
+- **Reframed the assumption copy** throughout to publisher-plain wording ("How much
+  Safari audience we win back", "Premium on impressions we make addressable again").
+
+### Fixed
+- **The "Technical deployment" control now actually moves the ramp.** It set a local
+  variable `generateMonthlyProjection` never read; the projection now reads the
+  `technicalDeploymentMonths` override (else the rollout's backbone: 12 / 9 / 6).
+  Additive and ramp-only — it never changes the annual total.
+- **Readiness dials no longer double-count.** A rollout sends no readiness override;
+  the 8 cards display a calibrated **neutral** baseline (`NEUTRAL_READINESS`, ×1.0),
+  so nudging one writes an honest deviation instead of silently lowering the number.
+- **The PDF summary downloads reliably.** The `window.open` after an `await` ran
+  outside the click gesture and was popup-blockable; the export now uses an
+  unconditional same-origin `<a download>`, which isn't blocked.
+
+### Removed (dead code)
+- Deleted the never-mounted standalone simulator cluster — `IdSimulator`,
+  `AdvancedPanel`, `FramingHero`, `HeroNumber`, `ResultsSection`,
+  `results/MetricCards`, and `AppHeader` — plus the now-unused `reset` from
+  `useIdSimulator`. The live app renders only the guided flow + `FullPicture`.
+
+### Added
+- `src/core/constants/scenarioPresets.ts` — tool-local opportunity/rollout presets
+  and the neutral-readiness baseline, deliberately kept out of the shared engine.
+
+### Verified
+- Golden holds bit-exact: Balanced · Backed → current monthly `$96,000`, id-only
+  monthly uplift `$5,298`, improved addressability `77.3%`, CDP `$3,500`.
+- Both pickers strictly monotonic on monthly uplift: opportunity
+  `$3,653 / $5,298 / $6,918`, rollout `$4,054 / $5,298 / $6,218`.
+- Driven in a real browser: each fact moves its intended output (contextual is
+  inverse; data spend up → uplift up; match-today moves the Breakdown baseline but
+  not the annual), readiness nudges are up=better, Reset restores Balanced · Backed,
+  the PDF downloads, and every tab fits with no inner scroll at lg/xl.
+
+## [4.2.0] - Every control drives the model; no truncated labels
 
 ### Fixed
 - **The per-property "Safari / iOS share" control now moves the ROI.** The engine

@@ -166,16 +166,18 @@ export const downloadIdProposalPdf = async (results: UnifiedResults): Promise<vo
   await new Promise<void>((resolve, reject) => {
     pdfMake.createPdf(doc).getBlob((blob: Blob) => {
       try {
+        // Same-origin blob download via an <a download>. This is the unconditional
+        // path: a `window.open` after an await runs outside the original click
+        // gesture and is popup-blockable, whereas a programmatic anchor download of
+        // an object URL is not, so the summary reliably saves.
         const url = URL.createObjectURL(blob);
-        const win = window.open(url, '_blank');
-        if (!win) {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'AdFixus-ID-Durability.pdf';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'AdFixus-ID-Durability.pdf';
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(url), 10000);
         resolve();
       } catch (err) {

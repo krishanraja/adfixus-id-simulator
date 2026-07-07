@@ -23,6 +23,17 @@ import {
   type UnifiedResults,
   type RiskScenario,
 } from '@/core';
+import {
+  OPPORTUNITY_PRESETS,
+  ROLLOUT_PRESETS,
+  type OpportunityKey,
+  type RolloutKey,
+} from '@/core/constants/scenarioPresets';
+
+// Share of a publisher's data-platform/CDP spend recovered by collapsing
+// duplicate IDs (~3.5 -> ~1.1 per user). Used to turn the spend they know into
+// the modelled monthly saving.
+export const CDP_DEDUPE_SAVINGS_RATE = 0.15;
 
 export interface DomainDraft {
   id: string;
@@ -38,6 +49,10 @@ export interface IdSimulatorState {
   displayCPM: number;
   videoCPM: number;
   risk: RiskScenario;
+  // Publisher-picked scenarios (Fine-tune tab). The opportunity sets the upside
+  // ceiling assumptions; the rollout sets `risk` (the realisation backbone).
+  opportunityScenario: OpportunityKey;
+  rolloutScenario: RolloutKey;
   // ID-infrastructure assumptions (all live). Safari/iOS share is deliberately
   // NOT here: it is a property of each domain's traffic (DomainDraft.safariShare)
   // and the engine consumes the pageview-weighted value, so there is one source
@@ -100,6 +115,8 @@ const initialState = (): IdSimulatorState => ({
   displayCPM: DEFAULTS.displayCPM,
   videoCPM: DEFAULTS.videoCPM,
   risk: DEFAULTS.risk,
+  opportunityScenario: 'balanced',
+  rolloutScenario: 'backed',
   baselineAddressability: DEFAULTS.baselineAddressability,
   targetSafariAddressability: DEFAULTS.targetSafariAddressability,
   cpmUpliftFactor: DEFAULTS.cpmUpliftFactor,
@@ -261,7 +278,16 @@ export function useIdSimulator() {
     }));
   }, []);
 
-  const reset = useCallback(() => setState(initialState()), []);
+  // Pick the upside "opportunity" scenario: sets the two ceiling assumptions.
+  const setOpportunity = useCallback((key: OpportunityKey) => {
+    setState((s) => ({ ...s, opportunityScenario: key, ...OPPORTUNITY_PRESETS[key] }));
+  }, []);
+
+  // Pick the "rollout" scenario: selects the realisation backbone (risk) and
+  // clears any readiness nudges so the estimate is the pure backbone.
+  const setRollout = useCallback((key: RolloutKey) => {
+    setState((s) => ({ ...s, rolloutScenario: key, risk: ROLLOUT_PRESETS[key].risk, readiness: {} }));
+  }, []);
 
   return {
     state,
@@ -272,6 +298,7 @@ export function useIdSimulator() {
     addDomain,
     updateDomain,
     removeDomain,
-    reset,
+    setOpportunity,
+    setRollout,
   };
 }

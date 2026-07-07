@@ -562,7 +562,12 @@ export class UnifiedCalculationEngine {
 
   static generateMonthlyProjection(results: UnifiedResults): MonthlyProjection[] {
     const { currentMonthlyRevenue, totalMonthlyUplift } = results.totals;
-    const rampUpMonths = results.riskScenario ? RISK_SCENARIOS[results.riskScenario].rampUpMonths : 12;
+    // Prefer an explicit deployment-months override when the caller sets one (the
+    // "Technical deployment" control); otherwise fall back to the risk backbone.
+    // Ramp-only: this never affects the $ totals.
+    const rampUpMonths =
+      results.assumptionOverrides?.readinessFactors?.technicalDeploymentMonths ??
+      (results.riskScenario ? RISK_SCENARIOS[results.riskScenario].rampUpMonths : 12);
     const { costs } = results.roiAnalysis;
 
     return Array.from({ length: 12 }, (_, i) => {

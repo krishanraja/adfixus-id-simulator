@@ -28,6 +28,7 @@ src/core/
     benchmarks.ts                 # industry benchmarks (addressability, CAPI, media, operational)
     riskScenarios.ts              # conservative / moderate / optimistic multipliers
     readinessFactors.ts           # 8 business-readiness factors + presets
+    scenarioPresets.ts            # tool-local Fine-tune presets (opportunity + rollout); NOT engine math
     pricingConfig.ts              # AdFixus rate card (engine-internal; unused by this tool's id-only scope)
   types/
     domain.ts                     # CoreDomain + singleDomain() helper
@@ -89,6 +90,21 @@ partial, deep-mergeable object (see `types/scenarios.ts`) covering:
   `constants/benchmarks.ts`.
 - **`adoptionRate` / `rampMonths`**: override the risk-scenario adoption curve.
 
+**The Fine-tune scenario pickers → overrides.** The console's Fine-tune tab does
+not expose raw benchmarks to the publisher; it offers two situation pickers whose
+presets live in `constants/scenarioPresets.ts` (tool-local product data, kept out
+of the shared engine so the core stays identical across AdFixus tools):
+
+- *The opportunity* (`OPPORTUNITY_PRESETS`, Cautious / Balanced / Ambitious) sets
+  `targetSafariAddressability` + `cpmUpliftFactor` — the two upside assumptions only
+  AdFixus can benchmark. **Balanced = the engine defaults**, so first paint is golden.
+- *Your rollout* (`ROLLOUT_PRESETS`, Lean / Backed / Strategic) selects the `risk`
+  backbone (`conservative / moderate / optimistic`) and **clears `readinessFactors`
+  to `{}`** — the estimate is the pure backbone, with no double-count against the
+  8 readiness dials. Those dials *display* a calibrated neutral (`NEUTRAL_READINESS`,
+  the per-factor value giving a ×1.0 multiplier); only a factor the user actually
+  nudges is sent, as an honest deviation from neutral.
+
 ---
 
 ## 2. Formulas & assumptions
@@ -137,19 +153,31 @@ addressability efficiency, CPM-uplift realization, and CDP-savings realization.
 Exact values in `constants/riskScenarios.ts`. The 8 readiness factors
 (`constants/readinessFactors.ts`) further modulate these.
 
+**Ramp length.** `generateMonthlyProjection` shapes the 12-month curve from
+`rampUpMonths`, reading the `readinessFactors.technicalDeploymentMonths` override
+when present, else the risk backbone (conservative 12 / moderate 9 / optimistic 6).
+The rollout picker surfaces this as the "Technical deployment" card. Ramp length
+shapes only the monthly curve — it never changes the annual total.
+
 ### 2.5 Golden values (regression guard)
 For inputs `{5,000,000 pageviews, $4.50 display / $12 video CPM, 3.2 ads/page,
-80% display, 35% Safari}`, moderate risk, `scope: 'id-only'`:
+80% display, 35% Safari}`, moderate risk, `scope: 'id-only'` — i.e. the console's
+default **Balanced · Backed** scenario with no readiness overrides:
 
 | Metric | Value |
 |--------|-------|
 | Current monthly revenue | **$96,000** |
 | ID-only monthly uplift | **$5,298** |
 | Improved addressability | **77.3%** |
-| CDP monthly savings | **$3,500** |
+| CDP monthly savings (raw / displayed) | **$3,500** |
 
-If you touch `benchmarks.ts` or `riskScenarios.ts`, re-check these numbers against
-a run of the app before shipping.
+The CDP figure is the raw saving the "Monthly spend on your data platform / CDP"
+fact displays; its *realized* contribution to uplift is risk-adjusted by
+`cdpSavingsRealization` (≈ $2,231 at moderate). The two scenario pickers are
+strictly monotonic on the monthly uplift: opportunity **$3,653 / $5,298 / $6,918**
+(Cautious / Balanced / Ambitious), rollout **$4,054 / $5,298 / $6,218**
+(Lean / Backed / Strategic). If you touch `benchmarks.ts`, `riskScenarios.ts`, or
+`scenarioPresets.ts`, re-check these before shipping.
 
 ---
 

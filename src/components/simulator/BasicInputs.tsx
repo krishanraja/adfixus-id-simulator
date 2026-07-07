@@ -2,27 +2,19 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { SlidersHorizontal } from 'lucide-react';
-import type { RiskScenario } from '@/core';
-import { RISK_SCENARIO_DESCRIPTIONS } from '@/core';
 
 interface BasicInputsProps {
   displayCPM: number;
   videoCPM: number;
-  risk: RiskScenario;
   onDisplayCPM: (v: number) => void;
   onVideoCPM: (v: number) => void;
-  onRisk: (v: RiskScenario) => void;
 }
-
-const RISKS: RiskScenario[] = ['conservative', 'moderate', 'optimistic'];
 
 export const BasicInputs = ({
   displayCPM,
   videoCPM,
-  risk,
   onDisplayCPM,
   onVideoCPM,
-  onRisk,
 }: BasicInputsProps) => {
   return (
     <Card className="p-6">
@@ -81,33 +73,6 @@ export const BasicInputs = ({
               <span>$40.00</span>
             </div>
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">How cautious should we be?</Label>
-          <p className="text-xs text-muted-foreground">
-            We&rsquo;d rather under-promise. This scales the whole estimate up or down.
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {RISKS.map((r) => {
-              const active = r === risk;
-              return (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => onRisk(r)}
-                  className={`rounded-lg border px-3 py-2.5 text-sm font-medium capitalize transition-all ${
-                    active
-                      ? 'border-primary bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]'
-                      : 'border-border bg-secondary/40 text-muted-foreground hover:border-primary/50 hover:text-foreground'
-                  }`}
-                >
-                  {r}
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-xs text-muted-foreground">{RISK_SCENARIO_DESCRIPTIONS[risk]}</p>
         </div>
       </div>
     </Card>

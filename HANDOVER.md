@@ -55,6 +55,7 @@ Provocation → Domain → Ask → Reveal   FullPicture (no-scroll console) insi
 | The full-picture console (tabs, inputs, result rail) | `src/components/simulator/FullPicture.tsx` (+ `BasicInputs.tsx`, `DomainPortfolio.tsx`, `AssumptionSlider.tsx`) |
 | Results / charts / PDF | `src/components/simulator/results/*` (charts) + the result rail in `FullPicture.tsx`, `src/utils/idPdf.ts` |
 | Inputs ↔ engine wiring | `src/hooks/useIdSimulator.ts` |
+| The Fine-tune scenario presets (opportunity / rollout) | `src/core/constants/scenarioPresets.ts` (tool-local; not the shared engine) |
 | The math, benchmarks, defaults | `src/core/` (see core spec) - do not fork per-repo |
 | The booking link | `VITE_MEETING_BOOKING_URL` (see `.env.example`) |
 | Real brand logos on domain entry | `VITE_BRANDFETCH_CLIENT_ID` (optional; favicon fallback otherwise) |
@@ -70,15 +71,32 @@ expose the full model:
 
 - **Configure** - `DomainPortfolio` (model 1..N domains, aggregated by the engine;
   per-property monthly pageviews, **Safari / iOS share**, ads/page, display/video
-  split) + `BasicInputs` (display/video CPM, execution outlook (risk)).
-- **Fine-tune** - the 13 benchmark `AssumptionSlider`s, split into an **Economics**
-  sub-tab (baseline & recovered addressability, CPM-uplift factor, contextual-CPM
-  ratio, CDP savings) and a **Readiness** sub-tab (the **8 readiness
-  sliders**: sales readiness, advertiser buy-in, organisational ownership, market
-  conditions, training, integration reliability, resource availability, technical
-  deployment). These flow into the engine as `AssumptionOverrides` (core spec §2.2).
+  split), `BasicInputs` (display/video CPM), and **What you already know** - the
+  three facts a publisher can actually state (*share matched to a known user today*
+  → `baselineAddressability`; *what an unmatched impression still earns* →
+  `contextualCpmRatio`, inverse; *monthly data-platform / CDP spend* → derived
+  `cdpMonthlySavings` at `CDP_DEDUPE_SAVINGS_RATE` ≈ 15%).
+- **Fine-tune** - **reframed for the publisher persona.** Instead of asking a
+  Head of Revenue for internal benchmarks, it offers two situation pickers, each
+  with the per-variable diligence cards one click away under **Advanced**:
+  - *The opportunity* (**Cautious / Balanced / Ambitious** → `setOpportunity`) sets
+    the two upside assumptions only AdFixus can benchmark (`targetSafariAddressability`,
+    `cpmUpliftFactor`). Advanced exposes those two as override sliders.
+  - *Your rollout* (**Lean / Backed / Strategic** → `setRollout`) picks the
+    realisation backbone: it sets `risk` and clears `readiness` to `{}` (pure
+    backbone, no double-count). Advanced exposes the **8 execution sliders**
+    (sales readiness, advertiser buy-in, organisational ownership, market
+    conditions, training, integration reliability, resource availability, technical
+    deployment), which *display* a calibrated neutral baseline (`NEUTRAL_READINESS`)
+    so a nudge writes an honest deviation. Only nudged factors enter the engine as
+    `AssumptionOverrides.readinessFactors` (core spec §2.2).
+
+  Presets live in `src/core/constants/scenarioPresets.ts` (tool-local product
+  data, deliberately **not** in the shared engine). First paint is Balanced ·
+  Backed, which reproduces the golden values bit-exact.
 - **Breakdown** - `AddressabilityWaterfall` + `DisplayVideoBreakdown`.
-- **Ramp** - `RampChart` (the first 12 months).
+- **Ramp** - `RampChart` (the first 12 months; ramp length reads the technical-
+  deployment override, else the rollout's backbone: Lean 12 / Backed 9 / Strategic 6).
 - **Briefing** - the full `TailoredBriefing`, only when a domain was recognised.
 
 Every input updates the payoff live; nothing leaves the browser. To add a new

@@ -1,23 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
   BarChart3,
-  Briefcase,
   CalendarCheck,
+  ChevronDown,
+  ClipboardList,
   Download,
   Gauge,
   Loader2,
-  Radar,
+  Rocket,
   RotateCcw,
   Sparkles,
   SlidersHorizontal,
+  Target,
   TrendingUp,
 } from 'lucide-react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import { formatCurrency, formatPercentage } from '@/utils/formatting';
 import { downloadIdProposalPdf } from '@/utils/idPdf';
 import { MEETING_BOOKING_URL } from '@/config';
+import { Card } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DomainPortfolio } from './DomainPortfolio';
 import { BasicInputs } from './BasicInputs';
 import { AssumptionSlider } from './AssumptionSlider';
@@ -25,7 +30,15 @@ import { AddressabilityWaterfall } from './results/AddressabilityWaterfall';
 import { DisplayVideoBreakdown } from './results/DisplayVideoBreakdown';
 import { RampChart } from './results/RampChart';
 import { TailoredBriefing } from '@/components/flow/TailoredBriefing';
-import { DEFAULTS, type useIdSimulator } from '@/hooks/useIdSimulator';
+import { DEFAULTS, CDP_DEDUPE_SAVINGS_RATE, type useIdSimulator } from '@/hooks/useIdSimulator';
+import {
+  OPPORTUNITY_META,
+  ROLLOUT_PRESETS,
+  ROLLOUT_RAMP_MONTHS,
+  NEUTRAL_READINESS,
+  type OpportunityKey,
+  type RolloutKey,
+} from '@/core/constants/scenarioPresets';
 import type { UnifiedResults } from '@/core';
 import type { DomainProfile } from '@/core/intel';
 
@@ -57,8 +70,18 @@ type TabKey = 'configure' | 'finetune' | 'breakdown' | 'ramp' | 'briefing';
  * view.
  */
 export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
-  const { state, results, visibility, patch, patchReadiness, addDomain, updateDomain, removeDomain } =
-    simulator;
+  const {
+    state,
+    results,
+    visibility,
+    patch,
+    patchReadiness,
+    addDomain,
+    updateDomain,
+    removeDomain,
+    setOpportunity,
+    setRollout,
+  } = simulator;
   const reduce = useReducedMotion();
   const [tab, setTab] = useState<TabKey>('configure');
 
@@ -108,6 +131,9 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
     return base;
   }, [hasBriefing]);
 
+  // How far the model has drifted from the golden Balanced · Backed baseline.
+  // Counts value deviations (so a scenario pick that moves an assumption is
+  // reflected) plus each execution-factor nudge.
   const modifiedCount = useMemo(() => {
     let n = 0;
     if (!approxEq(state.baselineAddressability, DEFAULTS.baselineAddressability)) n++;
@@ -115,19 +141,23 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
     if (!approxEq(state.cpmUpliftFactor, DEFAULTS.cpmUpliftFactor)) n++;
     if (!approxEq(state.contextualCpmRatio, DEFAULTS.contextualCpmRatio)) n++;
     if (!approxEq(state.cdpMonthlySavings, DEFAULTS.cdpMonthlySavings)) n++;
+    if (state.rolloutScenario !== 'backed') n++;
     n += Object.keys(state.readiness).length;
     return n;
   }, [state]);
 
-  const resetAssumptions = () =>
+  // Restore the Balanced · Backed baseline: reset both scenario pickers (which
+  // set the opportunity assumptions, risk backbone and clear readiness) and the
+  // three known-facts to their defaults.
+  const resetAssumptions = () => {
+    setOpportunity('balanced');
+    setRollout('backed');
     patch({
       baselineAddressability: DEFAULTS.baselineAddressability,
-      targetSafariAddressability: DEFAULTS.targetSafariAddressability,
-      cpmUpliftFactor: DEFAULTS.cpmUpliftFactor,
       contextualCpmRatio: DEFAULTS.contextualCpmRatio,
       cdpMonthlySavings: DEFAULTS.cdpMonthlySavings,
-      readiness: {},
     });
+  };
 
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col gap-4 p-4 md:p-6">
@@ -199,18 +229,27 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
                       onUpdate={updateDomain}
                       onRemove={removeDomain}
                     />
-                    <BasicInputs
-                      displayCPM={state.displayCPM}
-                      videoCPM={state.videoCPM}
-                      risk={state.risk}
-                      onDisplayCPM={(v) => patch({ displayCPM: v })}
-                      onVideoCPM={(v) => patch({ videoCPM: v })}
-                      onRisk={(v) => patch({ risk: v })}
-                    />
+                    <div className="flex flex-col gap-4">
+                      <BasicInputs
+                        displayCPM={state.displayCPM}
+                        videoCPM={state.videoCPM}
+                        onDisplayCPM={(v) => patch({ displayCPM: v })}
+                        onVideoCPM={(v) => patch({ videoCPM: v })}
+                      />
+                      <KnownFacts state={state} patch={patch} />
+                    </div>
                   </div>
                 )}
 
-                {tab === 'finetune' && <FineTunePanel state={state} patch={patch} patchReadiness={patchReadiness} />}
+                {tab === 'finetune' && (
+                  <FineTunePanel
+                    state={state}
+                    patch={patch}
+                    patchReadiness={patchReadiness}
+                    setOpportunity={setOpportunity}
+                    setRollout={setRollout}
+                  />
+                )}
 
                 {tab === 'breakdown' && (
                   <div className="grid gap-4 lg:grid-cols-2">
@@ -244,213 +283,342 @@ export const FullPicture = ({ simulator, profile }: FullPictureProps) => {
   );
 };
 
-/* ── The fine-tune panel: economics + readiness as compact sub-tabs so 14
-      benchmark sliders stay no-scroll on wide screens. ─────────────────── */
+/* ── Configure: the three facts a publisher genuinely knows about their own
+      business. Everything they can't know is a scenario in Fine-tune. ────── */
+type KnownFactsProps = {
+  state: Simulator['state'];
+  patch: Simulator['patch'];
+};
+
+const KnownFacts = ({ state, patch }: KnownFactsProps) => {
+  // The publisher tells us their data-platform spend; we model the saving as a
+  // share of it, so the number stays in their own terms.
+  const cdpSpend = Math.round(state.cdpMonthlySavings / CDP_DEDUPE_SAVINGS_RATE);
+  const defaultCdpSpend = Math.round(DEFAULTS.cdpMonthlySavings / CDP_DEDUPE_SAVINGS_RATE);
+
+  return (
+    <Card className="p-6">
+      <div className="mb-5 flex items-center gap-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+          <ClipboardList className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold">What you already know</h3>
+          <p className="text-xs text-muted-foreground">
+            Three facts about your business that sharpen the estimate
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-3">
+        <AssumptionSlider
+          label="Share matched to a known user today"
+          description="Of all your impressions, the slice you can already tie to someone"
+          value={state.baselineAddressability * 100}
+          defaultValue={DEFAULTS.baselineAddressability * 100}
+          min={40}
+          max={90}
+          step={1}
+          formatValue={pct}
+          onChange={(v) => patch({ baselineAddressability: v / 100 })}
+          tooltipContent="Sets the 'addressable today' baseline in the Breakdown - where you start from. It doesn't change how much a durable ID wins back."
+        />
+        <AssumptionSlider
+          label="What an unmatched impression still earns"
+          description="As a share of what a matched one earns"
+          value={state.contextualCpmRatio * 100}
+          defaultValue={DEFAULTS.contextualCpmRatio * 100}
+          min={50}
+          max={95}
+          step={1}
+          formatValue={pct}
+          onChange={(v) => patch({ contextualCpmRatio: v / 100 })}
+          tooltipContent="When you can't identify a visitor, you sell the impression contextually at a discount. The bigger that gap, the more a durable ID is worth - so a higher number here means a smaller uplift."
+        />
+        <AssumptionSlider
+          label="Monthly spend on your data platform / CDP"
+          description={`≈ ${formatCurrency(state.cdpMonthlySavings)}/mo saved by de-duplicating identities`}
+          value={cdpSpend}
+          defaultValue={defaultCdpSpend}
+          min={0}
+          max={100000}
+          step={1000}
+          formatValue={(v) => `$${Math.round(v / 1000)}K`}
+          onChange={(v) => patch({ cdpMonthlySavings: Math.round(v * CDP_DEDUPE_SAVINGS_RATE) })}
+          tooltipContent="Collapsing duplicate identities (from ~3.5 to ~1.1 per user) shrinks CDP/martech storage and processing. We model the saving at ~15% of that spend."
+        />
+      </div>
+    </Card>
+  );
+};
+
+/* ── A scenario section header: icon, title, one honest line of context. ── */
+const SectionHead = ({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  subtitle: string;
+}) => (
+  <div className="flex items-start gap-2.5">
+    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+      <Icon className="h-4 w-4 text-primary" />
+    </div>
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{subtitle}</p>
+    </div>
+  </div>
+);
+
+/* ── The pre-defined scenario picker: three situation cards, one active. ── */
+type ScenarioChoice<K extends string> = { key: K; label: string; blurb: string };
+
+function ScenarioPicker<K extends string>({
+  options,
+  active,
+  onPick,
+}: {
+  options: ScenarioChoice<K>[];
+  active: K;
+  onPick: (key: K) => void;
+}) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-3">
+      {options.map((o) => {
+        const isActive = o.key === active;
+        return (
+          <button
+            key={o.key}
+            type="button"
+            onClick={() => onPick(o.key)}
+            aria-pressed={isActive}
+            className={[
+              'flex flex-col gap-1 rounded-xl border p-3 text-left transition-all',
+              isActive
+                ? 'border-primary bg-primary/10 shadow-[0_0_20px_hsl(var(--primary)/0.15)]'
+                : 'border-border bg-secondary/30 hover:border-primary/40',
+            ].join(' ')}
+          >
+            <span className={`text-sm font-semibold ${isActive ? 'text-primary' : 'text-foreground'}`}>
+              {o.label}
+            </span>
+            <span className="text-xs leading-snug text-muted-foreground">{o.blurb}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── A collapsed "Advanced" reveal for the per-variable diligence cards. ── */
+const AdvancedReveal = ({ label, children }: { label: string; children: ReactNode }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="group inline-flex items-center gap-1.5 rounded-lg px-1 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+        {label}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-3">{children}</CollapsibleContent>
+    </Collapsible>
+  );
+};
+
+const OPPORTUNITY_CHOICES: ScenarioChoice<OpportunityKey>[] = (
+  Object.keys(OPPORTUNITY_META) as OpportunityKey[]
+).map((k) => ({ key: k, label: OPPORTUNITY_META[k].label, blurb: OPPORTUNITY_META[k].blurb }));
+
+const ROLLOUT_CHOICES: ScenarioChoice<RolloutKey>[] = (
+  Object.keys(ROLLOUT_PRESETS) as RolloutKey[]
+).map((k) => ({ key: k, label: ROLLOUT_PRESETS[k].label, blurb: ROLLOUT_PRESETS[k].blurb }));
+
+/* ── The fine-tune panel: two scenarios a publisher can actually reason about
+      (how far to push, and how they'll execute), each with the per-variable
+      diligence cards one click away under "Advanced". ──────────────────── */
 type FineTunePanelProps = {
   state: Simulator['state'];
   patch: Simulator['patch'];
   patchReadiness: Simulator['patchReadiness'];
+  setOpportunity: Simulator['setOpportunity'];
+  setRollout: Simulator['setRollout'];
 };
 
-const FineTunePanel = ({ state, patch, patchReadiness }: FineTunePanelProps) => {
-  const [group, setGroup] = useState<'economics' | 'readiness'>('economics');
+const FineTunePanel = ({
+  state,
+  patch,
+  patchReadiness,
+  setOpportunity,
+  setRollout,
+}: FineTunePanelProps) => {
   const r = state.readiness;
+  const N = NEUTRAL_READINESS;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <p className="mr-auto hidden text-sm text-muted-foreground sm:block">
-          Every benchmark is yours to challenge - the result updates live.
-        </p>
-        <div className="ml-auto flex rounded-lg border border-border bg-secondary/30 p-0.5 sm:ml-0">
-          {(
-            [
-              { key: 'economics', label: 'Economics', icon: Radar },
-              { key: 'readiness', label: 'Readiness', icon: Briefcase },
-            ] as const
-          ).map(({ key, label, icon: Icon }) => {
-            const active = key === group;
-            return (
-              <button
-                key={key}
-                onClick={() => setGroup(key)}
-                aria-pressed={active}
-                className={[
-                  'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all',
-                  active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
-                ].join(' ')}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+    <div className="space-y-5">
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        Pick the scenario that matches your business - the result updates live. Open{' '}
+        <span className="font-medium text-foreground">Advanced</span> under either one to
+        challenge the detail.
+      </p>
 
-      {group === 'economics' ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <AssumptionSlider
-            label="Baseline addressability"
-            description="Share of total inventory addressable today"
-            value={state.baselineAddressability * 100}
-            defaultValue={DEFAULTS.baselineAddressability * 100}
-            min={40}
-            max={90}
-            step={1}
-            formatValue={pct}
-            onChange={(v) => patch({ baselineAddressability: v / 100 })}
-            tooltipContent="What fraction of impressions can currently be matched to an ID. The remainder is sold contextually at a discount."
-          />
-          <AssumptionSlider
-            label="Recovered Safari addressability"
-            description="Safari addressability restored by a durable ID"
-            value={state.targetSafariAddressability * 100}
-            defaultValue={DEFAULTS.targetSafariAddressability * 100}
-            min={10}
-            max={60}
-            step={1}
-            formatValue={pct}
-            onChange={(v) => patch({ targetSafariAddressability: v / 100 })}
-            tooltipContent="A durable ID re-identifies returning Safari users beyond the 7-day limit. A conservative target is ~35%."
-          />
-          <AssumptionSlider
-            label="CPM uplift factor"
-            description="Premium on newly addressable inventory"
-            value={state.cpmUpliftFactor * 100}
-            defaultValue={DEFAULTS.cpmUpliftFactor * 100}
-            min={5}
-            max={50}
-            step={1}
-            formatValue={pct}
-            onChange={(v) => patch({ cpmUpliftFactor: v / 100 })}
-            tooltipContent="Addressable impressions command higher CPMs. Industry benchmarks show 20-30% uplift versus contextual."
-          />
-          <AssumptionSlider
-            label="Contextual CPM ratio"
-            description="Contextual CPM as a share of addressable CPM"
-            value={state.contextualCpmRatio * 100}
-            defaultValue={DEFAULTS.contextualCpmRatio * 100}
-            min={50}
-            max={95}
-            step={1}
-            formatValue={pct}
-            onChange={(v) => patch({ contextualCpmRatio: v / 100 })}
-            tooltipContent="How much of the addressable CPM you capture when selling the same impression contextually. Typically ~72%."
-          />
-          <AssumptionSlider
-            label="CDP monthly savings"
-            description="Data-platform cost saved from ID de-duplication"
-            value={state.cdpMonthlySavings}
-            defaultValue={DEFAULTS.cdpMonthlySavings}
-            min={0}
-            max={20000}
-            step={500}
-            formatValue={(v) => `$${(v / 1000).toFixed(1)}K`}
-            onChange={(v) => patch({ cdpMonthlySavings: v })}
-            tooltipContent="Collapsing ID bloat (from ~3.5 IDs/user to ~1.1) shrinks CDP/martech storage and processing costs."
-          />
-        </div>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <AssumptionSlider
-            label="Sales readiness"
-            description="Team trained to sell addressable inventory"
-            value={(r.salesReadiness ?? 0.75) * 100}
-            defaultValue={75}
-            min={40}
-            max={100}
-            step={5}
-            formatValue={pct}
-            onChange={(v) => patchReadiness('salesReadiness', v / 100)}
-            tooltipContent="Higher readiness realises more of the CPM uplift and adoption faster."
-          />
-          <AssumptionSlider
-            label="Advertiser buy-in"
-            description="Demand-side appetite for addressable buys"
-            value={(r.advertiserBuyIn ?? 0.8) * 100}
-            defaultValue={80}
-            min={40}
-            max={100}
-            step={5}
-            formatValue={pct}
-            onChange={(v) => patchReadiness('advertiserBuyIn', v / 100)}
-            tooltipContent="Stronger buy-in means more of the recovered inventory is actually monetised at premium rates."
-          />
-          <AssumptionSlider
-            label="Organisational ownership"
-            description="Clear internal owner driving rollout"
-            value={(r.organizationalOwnership ?? 0.8) * 100}
-            defaultValue={80}
-            min={40}
-            max={100}
-            step={5}
-            formatValue={pct}
-            onChange={(v) => patchReadiness('organizationalOwnership', v / 100)}
-            tooltipContent="Dedicated ownership raises adoption of the deployed capability."
-          />
-          <AssumptionSlider
-            label="Market conditions"
-            description="Overall ad-market demand environment"
-            value={(r.marketConditions ?? 0.85) * 100}
-            defaultValue={85}
-            min={50}
-            max={100}
-            step={5}
-            formatValue={pct}
-            onChange={(v) => patchReadiness('marketConditions', v / 100)}
-            tooltipContent="A softer market dampens realised CPM uplift and CDP savings."
-          />
-          <AssumptionSlider
-            label="Training coverage"
-            description="Ad-ops fluency with the new workflow"
-            value={(r.trainingGaps ?? 0.75) * 100}
-            defaultValue={75}
-            min={40}
-            max={100}
-            step={5}
-            formatValue={pct}
-            onChange={(v) => patchReadiness('trainingGaps', v / 100)}
-            tooltipContent="Better training lifts adoption and addressability efficiency."
-          />
-          <AssumptionSlider
-            label="Integration reliability"
-            description="Technical integrations landing cleanly"
-            value={(r.integrationDelays ?? 0.8) * 100}
-            defaultValue={80}
-            min={40}
-            max={100}
-            step={5}
-            formatValue={pct}
-            onChange={(v) => patchReadiness('integrationDelays', v / 100)}
-            tooltipContent="Fewer integration delays means addressability efficiency is realised sooner."
-          />
-          <AssumptionSlider
-            label="Resource availability"
-            description="People available to run the programme"
-            value={(r.resourceAvailability ?? 0.75) * 100}
-            defaultValue={75}
-            min={40}
-            max={100}
-            step={5}
-            formatValue={pct}
-            onChange={(v) => patchReadiness('resourceAvailability', v / 100)}
-            tooltipContent="Thin resourcing slows adoption and can extend the ramp period."
-          />
-          <AssumptionSlider
-            label="Technical deployment"
-            description="Months to fully deploy the durable ID"
-            value={r.technicalDeploymentMonths ?? 9}
-            defaultValue={9}
-            min={3}
-            max={18}
-            step={1}
-            formatValue={(v) => `${Math.round(v)} mo`}
-            onChange={(v) => patchReadiness('technicalDeploymentMonths', v)}
-            tooltipContent="Sets the ramp-up curve on the 12-month projection. Faster deployment reaches full value sooner."
-          />
-        </div>
-      )}
+      {/* ── The opportunity: how far to push ─────────────────────────────── */}
+      <section className="space-y-3 rounded-2xl border border-border bg-secondary/20 p-4">
+        <SectionHead
+          icon={Target}
+          title="The opportunity - how far you'd push"
+          subtitle="Two things only AdFixus can benchmark: how much Safari audience a durable ID wins back, and the premium it earns. Choose how ambitious to be."
+        />
+        <ScenarioPicker
+          options={OPPORTUNITY_CHOICES}
+          active={state.opportunityScenario}
+          onPick={setOpportunity}
+        />
+        <AdvancedReveal label="Advanced - the two upside assumptions">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <AssumptionSlider
+              label="How much Safari audience we win back"
+              description="Share of Safari visitors a durable ID re-identifies"
+              value={state.targetSafariAddressability * 100}
+              defaultValue={DEFAULTS.targetSafariAddressability * 100}
+              min={10}
+              max={60}
+              step={1}
+              formatValue={pct}
+              onChange={(v) => patch({ targetSafariAddressability: v / 100 })}
+              tooltipContent="Safari and ITP cap cookies at 7 days, so returning Safari visitors look new. A durable, owned ID recognises them again. The scenario sets this - drag to override."
+            />
+            <AssumptionSlider
+              label="Premium on impressions we make addressable again"
+              description="Extra CPM a known impression earns over an unknown one"
+              value={state.cpmUpliftFactor * 100}
+              defaultValue={DEFAULTS.cpmUpliftFactor * 100}
+              min={5}
+              max={50}
+              step={1}
+              formatValue={pct}
+              onChange={(v) => patch({ cpmUpliftFactor: v / 100 })}
+              tooltipContent="Advertisers pay more for impressions tied to a known user - industry benchmarks show 20-30% uplift. The scenario sets this - drag to override."
+            />
+          </div>
+        </AdvancedReveal>
+      </section>
+
+      {/* ── Your rollout: how you'll execute ─────────────────────────────── */}
+      <section className="space-y-3 rounded-2xl border border-border bg-secondary/20 p-4">
+        <SectionHead
+          icon={Rocket}
+          title="Your rollout - how you'll actually execute"
+          subtitle="How much of that opportunity you realise depends on your team and timeline. Pick the situation closest to yours; the cards below start from a neutral baseline you can nudge."
+        />
+        <ScenarioPicker
+          options={ROLLOUT_CHOICES}
+          active={state.rolloutScenario}
+          onPick={setRollout}
+        />
+        <AdvancedReveal label="Advanced - nudge the execution factors">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <AssumptionSlider
+              label="Sales readiness"
+              description="Team trained to sell addressable inventory"
+              value={(r.salesReadiness ?? N.salesReadiness) * 100}
+              defaultValue={N.salesReadiness * 100}
+              min={40}
+              max={100}
+              step={5}
+              formatValue={pct}
+              onChange={(v) => patchReadiness('salesReadiness', v / 100)}
+              tooltipContent="Higher readiness realises more of the CPM premium, and adoption comes faster."
+            />
+            <AssumptionSlider
+              label="Advertiser buy-in"
+              description="Demand-side appetite for addressable buys"
+              value={(r.advertiserBuyIn ?? N.advertiserBuyIn) * 100}
+              defaultValue={N.advertiserBuyIn * 100}
+              min={40}
+              max={100}
+              step={5}
+              formatValue={pct}
+              onChange={(v) => patchReadiness('advertiserBuyIn', v / 100)}
+              tooltipContent="Stronger buy-in means more of the recovered inventory is actually monetised at premium rates."
+            />
+            <AssumptionSlider
+              label="Organisational ownership"
+              description="Clear internal owner driving rollout"
+              value={(r.organizationalOwnership ?? N.organizationalOwnership) * 100}
+              defaultValue={N.organizationalOwnership * 100}
+              min={40}
+              max={100}
+              step={5}
+              formatValue={pct}
+              onChange={(v) => patchReadiness('organizationalOwnership', v / 100)}
+              tooltipContent="Dedicated ownership raises adoption of the deployed capability."
+            />
+            <AssumptionSlider
+              label="Market conditions"
+              description="Overall ad-market demand environment"
+              value={(r.marketConditions ?? N.marketConditions) * 100}
+              defaultValue={N.marketConditions * 100}
+              min={50}
+              max={100}
+              step={5}
+              formatValue={pct}
+              onChange={(v) => patchReadiness('marketConditions', v / 100)}
+              tooltipContent="A softer market dampens realised CPM uplift and CDP savings."
+            />
+            <AssumptionSlider
+              label="Training coverage"
+              description="Ad-ops fluency with the new workflow"
+              value={(r.trainingGaps ?? N.trainingGaps) * 100}
+              defaultValue={N.trainingGaps * 100}
+              min={40}
+              max={100}
+              step={5}
+              formatValue={pct}
+              onChange={(v) => patchReadiness('trainingGaps', v / 100)}
+              tooltipContent="Better training lifts adoption and addressability efficiency."
+            />
+            <AssumptionSlider
+              label="Integration reliability"
+              description="Technical integrations landing cleanly"
+              value={(r.integrationDelays ?? N.integrationDelays) * 100}
+              defaultValue={N.integrationDelays * 100}
+              min={40}
+              max={100}
+              step={5}
+              formatValue={pct}
+              onChange={(v) => patchReadiness('integrationDelays', v / 100)}
+              tooltipContent="Fewer integration delays means addressability efficiency is realised sooner."
+            />
+            <AssumptionSlider
+              label="Resource availability"
+              description="People available to run the programme"
+              value={(r.resourceAvailability ?? N.resourceAvailability) * 100}
+              defaultValue={N.resourceAvailability * 100}
+              min={40}
+              max={100}
+              step={5}
+              formatValue={pct}
+              onChange={(v) => patchReadiness('resourceAvailability', v / 100)}
+              tooltipContent="Thin resourcing slows adoption and can extend the ramp period."
+            />
+            <AssumptionSlider
+              label="Technical deployment"
+              description="Months to fully deploy the durable ID"
+              value={r.technicalDeploymentMonths ?? ROLLOUT_RAMP_MONTHS[state.rolloutScenario]}
+              defaultValue={ROLLOUT_RAMP_MONTHS[state.rolloutScenario]}
+              min={3}
+              max={18}
+              step={1}
+              formatValue={(v) => `${Math.round(v)} mo`}
+              onChange={(v) => patchReadiness('technicalDeploymentMonths', v)}
+              tooltipContent="Sets how quickly the 12-month projection ramps to full value. Faster deployment reaches it sooner; it doesn't change the annual total."
+            />
+          </div>
+        </AdvancedReveal>
+      </section>
     </div>
   );
 };

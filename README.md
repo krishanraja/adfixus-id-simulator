@@ -35,9 +35,11 @@ drawer** holding the no-scroll **`FullPicture` console**
 (`src/components/simulator/FullPicture.tsx`): a persistent **result rail** - the
 live annual value, headline metrics and two CTAs (book a conversation + a
 downloadable PDF summary) - beside a tabbed explore pane. The tabs are
-**Configure** (multi-domain portfolio + CPMs, incl. per-property Safari share),
-**Fine-tune** (the 5 economics + 8 readiness sliders, split into
-Economics/Readiness sub-tabs), **Breakdown**
+**Configure** (multi-domain portfolio + CPMs incl. per-property Safari share, plus
+*What you already know* - the three business facts a publisher can actually state),
+**Fine-tune** (two publisher-framed scenario pickers - *the opportunity* i.e. how
+far to push, and *your rollout* i.e. how you'll execute - each with the
+per-variable diligence cards one click away under *Advanced*), **Breakdown**
 (addressability waterfall + display/video split), **Ramp** (the ramp chart), and -
 when a domain was recognised - **Briefing** (the full tailored briefing). On
 narrow screens the rail collapses to a compact payoff bar above the tabs, and
@@ -181,27 +183,21 @@ src/
       TailoredBriefing.tsx     Business-tailored recommendation (context→gap→AdFixus→proof)
       DepthDrawer.tsx          Bounded, no-scroll frame that hosts the FullPicture console
       motion.ts                Shared framer-motion variants
-    simulator/                 The no-scroll "full picture" console (drawer) + a standalone variant
-      FullPicture.tsx          The drawer surface: result rail / payoff bar + tabbed explore pane (Configure, Fine-tune, Breakdown, Ramp, Briefing)
-      IdSimulator.tsx          Standalone full-page variant - kept but unreferenced (tree-shaken out); no longer used by the flow
-      FramingHero.tsx          AI-era framing headline (standalone variant only)
-      HeroNumber.tsx           Animated headline number (standalone variant only)
-      DomainPortfolio.tsx      Model 1..N domains (+ monthly pageviews per domain)
-      BasicInputs.tsx          Display & video CPM, execution outlook (risk)
-      AdvancedPanel.tsx        "Configure assumptions" + 8 readiness sliders (standalone variant only)
-      AssumptionSlider.tsx     Labelled slider with tooltip
-      ResultsSection.tsx       Charts, breakdowns, PDF + CTA (standalone variant only)
-      results/                 MetricCards, AddressabilityWaterfall, RampChart, DisplayVideoBreakdown
+    simulator/                 The no-scroll "full picture" console (drawer)
+      FullPicture.tsx          The drawer surface: result rail / payoff bar + tabbed explore pane (Configure, Fine-tune, Breakdown, Ramp, Briefing); hosts the scenario pickers + KnownFacts + advanced diligence cards
+      DomainPortfolio.tsx      Model 1..N domains (+ monthly pageviews, Safari share, ads/page, display/video per domain)
+      BasicInputs.tsx          Display & video CPM (the "How you monetise" card)
+      AssumptionSlider.tsx     Labelled slider with tooltip, live value + reset affordance
+      results/                 AddressabilityWaterfall, RampChart, DisplayVideoBreakdown
     ui/                        Vendored shadcn/ui primitives (only the used ones)
-    brand/AdfixusLogo.tsx      Real AdFixus wordmark/glyph (bundled brand SVG; standalone variant only - not shown in the live flow)
+    brand/AdfixusLogo.tsx      Real AdFixus wordmark/glyph (canonical brand SVG; the favicon is derived from this geometry - not rendered in the live flow)
     brand/BrandLogo.tsx        The visitor's own logo (Brandfetch CDN + favicon fallback)
-    AppHeader.tsx              Standalone header for the unreferenced IdSimulator variant (not used by the guided flow)
   hooks/
     useIdSimulator.ts          State + @/core engine bridge (source of truth)
     useAnimatedNumber.ts       Count-up animation for hero numbers
   core/                        Verified AdFixus calculation engine - see core spec
     engine/                    UnifiedCalculationEngine + domain aggregation
-    constants/                 Benchmarks, risk scenarios, readiness, pricing rate card
+    constants/                 Benchmarks, risk scenarios, readiness, pricing rate card, scenarioPresets (tool-local opportunity/rollout presets)
     types/                     Domain + scenario/override types
     intel/                     Domain intelligence: verticals, known-domain map, resolver, logo
     embed/embed.ts             Iframe height-reporting module
