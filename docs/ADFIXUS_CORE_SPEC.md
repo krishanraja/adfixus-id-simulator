@@ -67,7 +67,7 @@ month-by-month ramp used by the charts.
 
 **Live benchmark overrides.** A few benchmarks (Safari share, baseline
 addressability, contextual-CPM ratio, CDP savings) are exported as mutable
-constant objects. So the advanced sliders stay truthful, `useIdSimulator` snapshots
+constant objects. So the Fine-tune sliders stay truthful, `useIdSimulator` snapshots
 the pristine defaults, applies the user's values around each `calculate()` call,
 and restores them in a `finally`, see the comments in that file.
 
@@ -79,7 +79,7 @@ partial, deep-mergeable object (see `types/scenarios.ts`) covering:
 - **`readinessFactors`**: the 8 business-readiness sliders (0-1 each). These
   modulate risk-scenario efficiency. Presets live in `constants/readinessFactors.ts`.
 - **`targetSafariAddressability` / `cpmUpliftFactor`**: the two first-class
-  ID-infrastructure levers the advanced panel exposes.
+  ID-infrastructure levers the full-picture console's Fine-tune panel exposes.
 - **`benchmarks`**: override any industry-benchmark constant from
   `constants/benchmarks.ts`.
 - **`adoptionRate` / `rampMonths`**: override the risk-scenario adoption curve.
@@ -158,7 +158,10 @@ Key tokens: `--background: 0 0% 0%` (black), `--foreground: 0 0% 100%`,
 `--card: 0 0% 6%`, semantic `--success / --warning / --error`, status
 `--revenue-gain / --revenue-loss`. Body font: **Montserrat** (loaded via a Google
 Fonts `<link>` in `index.html`). Utility classes: `.glass-card`, `.gradient-text`,
-`.btn-gradient`, `.hero-gradient`, `.shimmer`, `.animate-fade-in`.
+`.btn-gradient`, `.hero-gradient`, `.shimmer`, `.animate-fade-in`, plus the
+no-scroll layout helpers `.min-h-dvh-safe` and `.h-dvh-safe` (bounded
+dynamic-viewport height) and `.scroll-contained` (thin, contained scrollbar) that
+the full-picture console relies on.
 
 > Note: adfixus.com is currently a *light* site. The dark-cyan look is canonical
 > for this tool. If seamless blending into the live site becomes the priority, flip
@@ -171,7 +174,9 @@ Fonts `<link>` in `index.html`). Utility classes: `.glass-card`, `.gradient-text
 
 The app calls `initAdfixusEmbed({ appName })` in `src/main.tsx`. The module
 (`src/core/embed/embed.ts`) reports content height to the parent via `postMessage`
-so the parent iframe resizes to fit (no inner scrollbar). It validates the parent
+so the parent iframe resizes to fit (no host-page scrollbar - the bounded
+full-picture console keeps any internal overflow in thin, contained scrollbars of
+its own). It validates the parent
 origin (default `https://www.adfixus.com`), throttles with a `ResizeObserver`,
 guards against feedback loops (only sends when height changes >10px, capped at
 `maxHeight` 5000px), and answers `ping` (→ `pong`) and `requestHeight` messages.
@@ -196,9 +201,12 @@ guards against feedback loops (only sends when height changes >10px, capped at
 on another origin, pass `initAdfixusEmbed({ appName, parentOrigin })`.
 
 Because the guided flow hides (rather than unmounts) while the depth drawer is
-open, and the drawer renders in normal document flow, `#root` scrollHeight always
-reflects what the visitor sees, so the reported height stays correct as the
-visitor moves between the flow and the full picture.
+open, and the drawer renders in normal document flow - bounded to a single
+viewport (`h-dvh-safe` + `overflow-hidden`) rather than growing with its content -
+`#root` scrollHeight always reflects what the visitor sees. Opening the full
+picture therefore reports exactly one viewport (never a taller host page), and the
+reported height stays correct as the visitor moves between the flow and the full
+picture.
 
 ---
 
@@ -247,8 +255,11 @@ The seven verticals - `news`, `broadcast`, `lifestyle`, `entertainment`, `b2b`,
   Carsales +25% revenue; a broadcaster surfacing 600k Safari users in six weeks;
   100% first-party match with zero PII). No company-specific numbers are invented.
 
-`TailoredBriefing` renders this - compact on the Reveal screen, full atop the depth
-drawer - with a stakeholder-lens toggle that swaps the proof metric.
+`TailoredBriefing` renders this - a trimmed teaser on the Reveal screen (the
+identity gap plus the stakeholder proof metric; hidden on narrow screens, where
+it's one tap away in the Briefing tab) and the full four-part briefing in the
+full-picture console's Briefing tab (shown only when a domain was recognised) -
+with a stakeholder-lens toggle that swaps the proof metric.
 
 ### 5.3 Regenerating `knownDomains.ts`
 

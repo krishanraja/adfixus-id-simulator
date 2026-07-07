@@ -24,16 +24,25 @@ It asks for almost nothing, then reveals the payoff:
 3. **Ask** - one tactile control: *roughly how big is your audience?* pre-seeded
    from the vertical; everything else is inferred.
 4. **Reveal** - an animated hero number (the annual ad revenue a durable owned
-   identity brings back) *plus a briefing tailored to that business* - its identity
-   gap, what it costs, how AdFixus closes it, and a role-calibrated proof metric -
-   with one calm "book a conversation" CTA.
+   identity brings back) *plus a teaser of the briefing tailored to that business*
+   - its identity gap and a role-calibrated proof metric - with one calm "book a
+   conversation" CTA. The full four-part briefing (context, identity gap, what it
+   costs, how AdFixus closes it) lives in the full-picture console's Briefing tab.
 
-From the reveal, **"See the full picture / Customise"** opens a **depth drawer**
-holding the complete configurable simulator (`src/components/simulator/*`) -
-multi-domain portfolio, CPMs, an advanced "Configure assumptions" panel, the
-8 readiness sliders, an addressability waterfall, a ramp chart, metric cards, and
-a downloadable PDF. The flow and the drawer **share one simulator instance**, so
-the audience size chosen up front carries straight into the detailed view.
+From the reveal, **"See the full picture / Customise"** (labelled **"See the full
+picture & briefing / Customise"** once a business is recognised) opens a **depth
+drawer** holding the no-scroll **`FullPicture` console**
+(`src/components/simulator/FullPicture.tsx`): a persistent **result rail** - the
+live annual value, headline metrics and two CTAs (book a conversation + a
+downloadable PDF summary) - beside a tabbed explore pane. The tabs are
+**Configure** (multi-domain portfolio + CPMs), **Fine-tune** (the 6 economics +
+8 readiness sliders, split into Economics/Readiness sub-tabs), **Breakdown**
+(addressability waterfall + display/video split), **Ramp** (the ramp chart), and -
+when a domain was recognised - **Briefing** (the full tailored briefing). On
+narrow screens the rail collapses to a compact payoff bar above the tabs, and
+every input updates the payoff live. The flow and the console **share one
+simulator instance**, so the audience size chosen up front carries straight into
+the detailed view.
 
 ## Architecture (grok it in 10 minutes)
 
@@ -48,7 +57,7 @@ GuidedFlow  ─────────► useIdSimulator()  ──────�
 
 - **`GuidedFlow`** (`src/pages/Index.tsx` → `src/components/flow/GuidedFlow.tsx`)
   is the whole app. It owns the step state and one `useIdSimulator()` instance,
-  renders the guided steps in a `FlowShell`, and mounts the full `IdSimulator`
+  renders the guided steps in a `FlowShell`, and mounts the `FullPicture` console
   inside a `DepthDrawer`.
 - **`useIdSimulator`** (`src/hooks/useIdSimulator.ts`) is the single source of
   truth: it holds all inputs (domains, CPMs, risk, benchmark overrides, readiness)
@@ -120,9 +129,11 @@ It is a static SPA - deploy on Vercel (or any static host):
 
 ## Embed it in adfixus.com
 
-The app reports its content height to the parent page so it iframes with no inner
-scrollbar. The embed module (`src/core/embed/embed.ts`) is initialised once from
-`src/main.tsx` via `initAdfixusEmbed({ appName })`.
+The app reports its content height to the parent page so it iframes with no
+host-page scrollbar - the bounded full-picture console keeps any internal overflow
+in thin, contained scrollbars of its own. The embed module
+(`src/core/embed/embed.ts`) is initialised once from `src/main.tsx` via
+`initAdfixusEmbed({ appName })`.
 
 **Protocol.** The child posts `{ type: 'setHeight', height, source, trigger }` to
 the parent whenever its height changes (>10px, capped at `maxHeight` 5000px). It
@@ -160,29 +171,30 @@ src/
   components/
     flow/                      The Apple-grade guided flow (default surface)
       GuidedFlow.tsx           Orchestrates steps + owns the shared simulator + domain profile
-      FlowShell.tsx            Full-viewport stage: wordmark, progress dots, transitions
+      FlowShell.tsx            Full-viewport stage: progress dots, transitions (no wordmark - host page brands it)
       Provocation.tsx          Step 0 - the anonymous majority is going dark
       DomainStep.tsx           Step 1 - recognise the visitor's site & pre-fill the model
       AskStep.tsx              Step 2 wrapper - one question (audience size)
       AudienceSizeControl.tsx  The single tactile audience-size control
-      Reveal.tsx               Step 3 - animated hero number + tailored briefing + CTA
+      Reveal.tsx               Step 3 - animated hero number + briefing teaser + CTA
       TailoredBriefing.tsx     Business-tailored recommendation (context→gap→AdFixus→proof)
-      DepthDrawer.tsx          Slides in the full configurable simulator
+      DepthDrawer.tsx          Bounded, no-scroll frame that hosts the FullPicture console
       motion.ts                Shared framer-motion variants
-    simulator/                 The full configurable simulator (in the drawer)
-      IdSimulator.tsx          Assembles inputs + results; accepts a shared simulator
-      FramingHero.tsx          AI-era framing headline
-      HeroNumber.tsx           Animated headline number
-      DomainPortfolio.tsx      Model 1..N domains
-      BasicInputs.tsx          Pageviews, CPMs, execution outlook (risk)
-      AdvancedPanel.tsx        "Configure assumptions" + 8 readiness sliders
+    simulator/                 The no-scroll "full picture" console (drawer) + a standalone variant
+      FullPicture.tsx          The drawer surface: result rail / payoff bar + tabbed explore pane (Configure, Fine-tune, Breakdown, Ramp, Briefing)
+      IdSimulator.tsx          Standalone full-page variant - kept but unreferenced (tree-shaken out); no longer used by the flow
+      FramingHero.tsx          AI-era framing headline (standalone variant only)
+      HeroNumber.tsx           Animated headline number (standalone variant only)
+      DomainPortfolio.tsx      Model 1..N domains (+ monthly pageviews per domain)
+      BasicInputs.tsx          Display & video CPM, execution outlook (risk)
+      AdvancedPanel.tsx        "Configure assumptions" + 8 readiness sliders (standalone variant only)
       AssumptionSlider.tsx     Labelled slider with tooltip
-      ResultsSection.tsx       Charts, breakdowns, PDF + CTA
+      ResultsSection.tsx       Charts, breakdowns, PDF + CTA (standalone variant only)
       results/                 MetricCards, AddressabilityWaterfall, RampChart, DisplayVideoBreakdown
     ui/                        Vendored shadcn/ui primitives (only the used ones)
-    brand/AdfixusLogo.tsx      Real AdFixus wordmark/glyph (bundled brand SVG)
+    brand/AdfixusLogo.tsx      Real AdFixus wordmark/glyph (bundled brand SVG; standalone variant only - not shown in the live flow)
     brand/BrandLogo.tsx        The visitor's own logo (Brandfetch CDN + favicon fallback)
-    AppHeader.tsx              Standalone header (suppressed when embedded)
+    AppHeader.tsx              Standalone header for the unreferenced IdSimulator variant (not used by the guided flow)
   hooks/
     useIdSimulator.ts          State + @/core engine bridge (source of truth)
     useAnimatedNumber.ts       Count-up animation for hero numbers

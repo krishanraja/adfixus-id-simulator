@@ -5,8 +5,9 @@ Durability Simulator lead magnet.
 
 > **Current architecture (authoritative):** a 100% client-side React SPA. The
 > default surface is an Apple-grade **guided flow** (`src/components/flow/*`:
-> provocation → one audience-size control → animated reveal → a depth drawer
-> holding the full configurable simulator, `src/components/simulator/*`). The math
+> provocation → domain recognition → one audience-size control → animated reveal →
+> a depth drawer holding the no-scroll full-picture console,
+> `src/components/simulator/*`). The math
 > lives in the verified **`src/core`** engine (`scope: 'id-only'`), driven by a
 > single `src/hooks/useIdSimulator.ts` instance shared by the flow and the drawer.
 > Iframe-embeddable into adfixus.com. **No backend, no login, no lead capture, no
@@ -27,7 +28,8 @@ around everything without the page ever scrolling.
   console. A persistent **result rail** (the live annual value, headline metrics
   and both CTAs) stays on screen beside a **tabbed explore pane** - Configure,
   Fine-tune, Breakdown, Ramp, and a tailored Briefing when a business is
-  recognised. Every input updates the rail live, so impact is always in view.
+  recognised - collapsing to a compact **payoff bar** above the tabs on narrow
+  screens. Every input updates the payoff live, so impact is always in view.
   Fine-tune splits its 14 benchmark sliders into Economics / Readiness sub-tabs so
   they stay no-scroll. The old scrolling `IdSimulator.tsx` remains as the
   standalone full-page variant.
@@ -36,7 +38,13 @@ around everything without the page ever scrolling.
   one viewport to the parent iframe and never grows the host page.
 - **`TailoredBriefing`** full variant re-laid out as a 2×2 block grid beside the
   proof panel, so the Briefing tab fits within the frame. The compact reveal
-  variant is unchanged.
+  variant is now a trimmed **teaser** - the identity gap plus the stakeholder
+  proof metric only - with the full four-part briefing (context → gap → cost →
+  AdFixus mapping) moved off the reveal and into the console's Briefing tab.
+- **`Reveal`** now uses a tightened two-column layout when a briefing panel is
+  present - the payoff sits beside the briefing teaser and the hero number is
+  smaller - so the reveal still fits one viewport; on narrow screens the teaser is
+  hidden and reached via the Briefing tab.
 
 ### Fixed
 - **Interacting with the full picture no longer jumps to the top of the page.**
@@ -47,6 +55,10 @@ around everything without the page ever scrolling.
   removed the Recharts mount animation (which could stick at frame 0) and render it
   at a deterministic fixed size. As a bonus it no longer re-animates on every live
   input change.
+- **No horizontal overflow in the console.** The explore-pane / result-rail grid
+  now uses `min-w-0` (with `minmax(0,1fr)` tracks) so a wide child - a chart, a
+  slider row, the briefing - can no longer stretch the grid past the frame and
+  introduce a horizontal scrollbar on narrow screens.
 
 ### Removed
 - **Top-left AdFixus wordmark** from the guided flow (`FlowShell`). The tool is
